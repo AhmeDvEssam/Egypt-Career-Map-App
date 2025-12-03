@@ -1,0 +1,117 @@
+/* ============================================
+   RESPONSIVE DESIGN
+   Mobile, Tablet, Desktop Breakpoints
+   ============================================ */
+
+/* Mobile First Approach */
+/* Base styles are mobile-friendly by default */
+
+/* Tablet (768px and up) */
+@media (min-width: 768px) {
+    .kpi-card-v2 {
+        min-height: 110px;
+    }
+
+    .kpi-icon-box {
+        width: 56px;
+        height: 56px;
+    }
+
+    .kpi-value-v2 {
+        font-size: var(--font-size-3xl);
+    }
+}
+
+/* Desktop (1200px and up) */
+@media (min-width: 1200px) {
+    .kpi-card-v2 {
+        min-height: 120px;
+    }
+
+    .interactive-chart {
+        padding: var(--space-4);
+    }
+}
+
+/* Mobile Specific (<768px) */
+@media (max-width: 767px) {
+
+    /* KPI Cards Stack Vertically */
+    .kpi-card-v2 {
+        margin-bottom: var(--space-2);
+    }
+
+    /* Reduce Icon Size */
+    .kpi-icon-box {
+        width: 48px;
+        height: 48px;
+    }
+
+    .kpi-icon-box i {
+        font-size: 20px;
+    }
+
+    /* Smaller KPI Values */
+    .kpi-value-v2 {
+        font-size: var(--font-size-2xl);
+    }
+
+    /* Chart Heights */
+    .chart-container {
+        min-height: 300px;
+    }
+
+    /* Filter Sidebar Overlay */
+    #filter-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        height: 100vh;
+        width: 80%;
+        max-width: 320px;
+        z-index: var(--z-modal);
+        transition: left var(--transition-base);
+        overflow-y: auto;
+    }
+
+    #filter-sidebar.open {
+        left: 0;
+    }
+
+    /* Backdrop for Mobile Sidebar */
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: calc(var(--z-modal) - 1);
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+    }
+}
+
+/* Print Styles */
+@media print {
+
+    .filter-sidebar,
+    .chart-actions,
+    #theme-toggle-btn,
+    #global-search-bar {
+        display: none !important;
+    }
+
+    .interactive-chart {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .kpi-card-v2 {
+        page-break-inside: avoid;
+    }
+}
