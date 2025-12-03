@@ -1,0 +1,164 @@
+/* ============================================
+   INTERACTIVE CHART WRAPPER
+   Professional Chart Container Styling
+   ============================================ */
+
+.interactive-chart {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    position: relative;
+    margin-bottom: var(--space-3);
+}
+
+.interactive-chart:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(0, 102, 204, 0.2);
+}
+
+/* Chart Header */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.chart-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.chart-actions {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.chart-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    font-size: 14px;
+}
+
+.chart-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--primary-medium);
+    border-color: var(--primary-medium);
+    transform: translateY(-2px);
+}
+
+.chart-action-btn:active {
+    transform: translateY(0);
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    min-height: 400px;
+}
+
+/* Filter Badges */
+.filter-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-bottom: var(--space-2);
+    padding: var(--space-2);
+    background: rgba(0, 102, 204, 0.05);
+    border-radius: var(--radius-sm);
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--primary-medium);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-fast);
+}
+
+.filter-badge:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 102, 204, 0.3);
+}
+
+.filter-badge-remove {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background var(--transition-fast);
+}
+
+.filter-badge-remove:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Empty State */
+.chart-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: var(--space-4);
+}
+
+.chart-empty-state i {
+    font-size: 48px;
+    margin-bottom: var(--space-2);
+    opacity: 0.3;
+}
+
+.chart-empty-state p {
+    font-size: var(--font-size-base);
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .interactive-chart {
+        padding: var(--space-2);
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .chart-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

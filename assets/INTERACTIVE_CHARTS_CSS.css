@@ -1,0 +1,361 @@
+/* ============================================
+   INTERACTIVE CHARTS ENHANCEMENTS
+   Added: November 29, 2025 - OPTION C
+   ============================================ */
+
+/* ============================================
+   1. ENHANCED HOVER TOOLTIPS
+   ============================================ */
+
+/* Make Plotly tooltips more prominent and beautiful */
+.hoverlayer .hovertext {
+    background: linear-gradient(135deg, rgba(10, 25, 41, 0.98), rgba(0, 51, 102, 0.95)) !important;
+    border: 2px solid rgba(0, 102, 204, 0.6) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 102, 204, 0.4) !important;
+    padding: 12px 16px !important;
+    font-family: 'Inter', sans-serif !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.hoverlayer .hovertext text {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    fill: white !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Arrow pointer for tooltips */
+.hoverlayer .hovertext path {
+    fill: rgba(10, 25, 41, 0.98) !important;
+    stroke: rgba(0, 102, 204, 0.6) !important;
+    stroke-width: 2 !important;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) !important;
+}
+
+/* ============================================
+   2. CLICKABLE CHART ELEMENTS
+   ============================================ */
+
+/* Visual feedback when hovering over clickable bars */
+.plotly .bars .point,
+.plotly .bar,
+.plotly .trace.bars path {
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Glow effect on hover */
+.plotly .bars .point:hover,
+.plotly .bar:hover {
+    filter: brightness(1.3) drop-shadow(0 0 10px rgba(0, 102, 204, 0.8)) !important;
+    transform: scale(1.02) !important;
+}
+
+/* Selected/Active state for clicked elements */
+.plotly .bars .point.selected,
+.plotly .bar.selected {
+    filter: brightness(1.5) drop-shadow(0 0 15px rgba(0, 204, 255, 1)) !important;
+    stroke: #00CCFF !important;
+    stroke-width: 3px !important;
+}
+
+/* ============================================
+   3. CHART CONTAINER INTERACTION STATES
+   ============================================ */
+
+/* Chart container gets border when interactive */
+.interactive-chart {
+    position: relative !important;
+    border: 2px solid transparent !important;
+    border-radius: 15px !important;
+    transition: all 0.3s ease !important;
+    padding: 10px !important;
+}
+
+.interactive-chart:hover {
+    border-color: rgba(0, 102, 204, 0.4) !important;
+    box-shadow: 0 0 30px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* "Click to filter" indicator badge */
+.interactive-chart::after {
+    content: '🖱️ Click to filter' !important;
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(51, 153, 255, 0.9)) !important;
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+    pointer-events: none !important;
+    z-index: 1000 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.interactive-chart:hover::after {
+    opacity: 1 !important;
+    animation: pulse-badge 2s infinite !important;
+}
+
+/* ============================================
+   4. ACTIVE FILTER INDICATOR
+   ============================================ */
+
+/* Show active filter banner on chart */
+.chart-active-filter {
+    position: absolute !important;
+    top: 50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95)) !important;
+    color: white !important;
+    padding: 8px 20px 8px 16px !important;
+    border-radius: 25px !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4) !important;
+    z-index: 1000 !important;
+    animation: slide-down 0.4s ease !important;
+}
+
+.chart-active-filter .close-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: white !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+}
+
+.chart-active-filter .close-btn:hover {
+    background: rgba(255, 255, 255, 0.4) !important;
+    transform: rotate(90deg) !important;
+}
+
+@keyframes slide-down {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ============================================
+   5. ZOOM CONTROLS OVERLAY
+   ============================================ */
+
+/* Custom zoom controls for charts */
+.chart-zoom-controls {
+    position: absolute !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    display: flex !important;
+    gap: 8px !important;
+    z-index: 1000 !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+.interactive-chart:hover .chart-zoom-controls {
+    opacity: 1 !important;
+}
+
+.zoom-btn {
+    background: rgba(0, 102, 204, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.zoom-btn:hover {
+    background: rgba(0, 102, 204, 1) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(0, 102, 204, 0.5) !important;
+}
+
+.zoom-btn:active {
+    transform: translateY(0) !important;
+}
+
+/* ============================================
+   6. SELECTION HIGHLIGHT ANIMATION
+   ============================================ */
+
+/* Ripple effect when clicking on bar */
+@keyframes click-ripple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 204, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(0, 204, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 204, 255, 0);
+    }
+}
+
+.chart-element-clicked {
+    animation: click-ripple 0.6s ease !important;
+}
+
+/* ============================================
+   7. PLOTLY MODEBAR STYLING (Zoom, Pan, etc.)
+   ============================================ */
+
+/* Make Plotly's default controls match our theme */
+.modebar {
+    background: rgba(10, 25, 41, 0.9) !important;
+    border-radius: 8px !important;
+    padding: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.modebar-btn {
+    background: transparent !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+.modebar-btn:hover {
+    background: rgba(0, 102, 204, 0.3) !important;
+}
+
+.modebar-btn.active,
+.modebar-btn:active {
+    background: rgba(0, 102, 204, 0.6) !important;
+}
+
+.modebar-btn path {
+    fill: white !important;
+}
+
+/* ============================================
+   8. LOADING STATE FOR INTERACTIVE CHARTS
+   ============================================ */
+
+.chart-loading-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 43, 77, 0.95) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 2000 !important;
+    border-radius: 15px !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+.chart-loading-spinner {
+    width: 60px !important;
+    height: 60px !important;
+    border: 4px solid rgba(0, 102, 204, 0.2) !important;
+    border-top-color: #0066CC !important;
+    border-radius: 50% !important;
+    animation: spin 1s linear infinite !important;
+    margin-bottom: 16px !important;
+}
+
+.chart-loading-text {
+    color: #3399FF !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    animation: pulse 2s ease-in-out infinite !important;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   9. CHART LEGEND INTERACTION
+   ============================================ */
+
+/* Enhanced legend items */
+.legend .traces .trace {
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.legend .traces .trace:hover {
+    opacity: 0.7 !important;
+    transform: translateX(3px) !important;
+}
+
+.legend .traces .trace text {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    fill: white !important;
+}
+
+/* ============================================
+   10. COMPARISON MODE STYLING
+   ============================================ */
+
+/* When multiple bars/items are selected for comparison */
+.chart-comparison-mode .selected-items {
+    position: absolute !important;
+    top: 60px !important;
+    left: 20px !important;
+    background: rgba(10, 25, 41, 0.95) !important;
+    border: 2px solid rgba(0, 102, 204, 0.6) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    max-width: 300px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1000 !important;
+}
+
+.chart-comparison-mode .comparison-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.2) !important;
+    color: white !important;
+    font-size: 0.9rem !important;
+}
+
+.chart-comparison-mode .comparison-item:last-child {
+    border-bottom: none !important;
+}
+
+.chart-comparison-mode .comparison-value {
+    font-weight: 700 !important;
+    color: #00CCFF !important;
+}
+
+/* ============================================
+   END OF INTERACTIVE CHARTS ENHANCEMENTS
+   ============================================ */

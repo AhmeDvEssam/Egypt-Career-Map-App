@@ -1,0 +1,164 @@
+/* ============================================
+   UNIFIED KPI CARD COMPONENT
+   Professional SaaS Dashboard Style
+   ============================================ */
+
+.kpi-card-v2 {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 100px;
+}
+
+/* Bottom accent bar */
+.kpi-card-v2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-medium), var(--primary-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-base);
+}
+
+.kpi-card-v2:hover::after {
+    transform: scaleX(1);
+}
+
+/* Hover state */
+.kpi-card-v2:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(0, 102, 204, 0.3);
+}
+
+/* Icon box */
+.kpi-icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 204, 255, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-base);
+}
+
+.kpi-icon-box i {
+    font-size: 24px;
+    color: var(--primary-medium);
+}
+
+.kpi-card-v2:hover .kpi-icon-box {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 204, 255, 0.25));
+}
+
+.kpi-card-v2:hover .kpi-icon-box i {
+    color: var(--primary-dark);
+}
+
+/* Content area */
+.kpi-content-box {
+    flex: 1;
+    min-width: 0;
+}
+
+.kpi-label-v2 {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.kpi-value-v2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    line-height: 1.2;
+    transition: color var(--transition-base);
+}
+
+.kpi-card-v2:hover .kpi-value-v2 {
+    color: var(--primary-medium);
+}
+
+/* Badge for % change */
+.kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    margin-top: 4px;
+}
+
+.kpi-badge.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.kpi-badge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+}
+
+.kpi-badge i {
+    font-size: 10px;
+}
+
+/* Float animation */
+.kpi-float {
+    animation: gentleFloat 4s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .kpi-card-v2 {
+        padding: var(--space-2);
+    }
+
+    .kpi-icon-box {
+        width: 48px;
+        height: 48px;
+    }
+
+    .kpi-icon-box i {
+        font-size: 20px;
+    }
+
+    .kpi-value-v2 {
+        font-size: var(--font-size-2xl);
+    }
+}
