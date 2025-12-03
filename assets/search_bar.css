@@ -1,0 +1,116 @@
+/* Google-style Search Bar */
+.search-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-right: 15px;
+}
+
+/* Compact state - half size (850px) */
+.google-search-bar-compact {
+    max-width: 850px !important;
+    min-width: 400px !important;
+}
+
+/* Expand on hover - add half more (850px * 1.5 = 1275px) */
+.google-search-bar-compact:hover,
+.google-search-bar-compact:focus-within {
+    max-width: 1275px !important;
+    min-width: 600px !important;
+}
+
+.google-search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #dfe1e5;
+    border-radius: 8px;
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 850px;
+    min-width: 600px;
+    height: 52px;
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+.google-search-bar:hover {
+    box-shadow: 0 2px 12px rgba(32, 33, 36, 0.35), 0 4px 16px rgba(32, 33, 36, 0.15);
+    border-color: #c0c4cc;
+    transform: scale(1.04);
+}
+
+.google-search-bar:focus-within {
+    box-shadow: 0 2px 12px rgba(0, 102, 204, 0.3), 0 4px 16px rgba(0, 102, 204, 0.15);
+    border-color: #0066CC;
+    transform: scale(1.05);
+}
+
+.google-search-input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    padding: 8px;
+    color: #202124;
+    background-color: transparent;
+    font-family: 'Inter', sans-serif;
+    cursor: text;
+    caret-color: #0066CC;
+}
+
+.google-search-input::placeholder {
+    color: #9aa0a6;
+    opacity: 1;
+}
+
+.search-icon {
+    color: #9aa0a6;
+    font-size: 20px;
+    margin-right: 12px;
+    transition: color 0.3s ease;
+}
+
+.google-search-bar:hover .search-icon,
+.google-search-bar:focus-within .search-icon {
+    color: #0066CC;
+}
+
+/* Dark Mode Support */
+.dark-theme .google-search-bar {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .google-search-bar:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
+    border-color: #8a8f98;
+    transform: scale(1.04);
+}
+
+.dark-theme .google-search-bar:focus-within {
+    box-shadow: 0 2px 12px rgba(0, 204, 255, 0.3), 0 4px 16px rgba(0, 204, 255, 0.15);
+    border-color: #00CCFF;
+    transform: scale(1.05);
+}
+
+.dark-theme .google-search-input {
+    color: #e8eaed;
+    caret-color: #00CCFF;
+}
+
+.dark-theme .google-search-input::placeholder {
+    color: #9aa0a6;
+}
+
+.dark-theme .search-icon {
+    color: #9aa0a6;
+}
+
+.dark-theme .google-search-bar:hover .search-icon,
+.dark-theme .google-search-bar:focus-within .search-icon {
+    color: #00CCFF;
+}
