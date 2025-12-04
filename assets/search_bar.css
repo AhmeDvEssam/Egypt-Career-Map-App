@@ -6,17 +6,19 @@
     margin-right: 15px;
 }
 
-/* Compact state - half size (850px) */
+/* Compact state - Base width */
 .google-search-bar-compact {
-    max-width: 850px !important;
-    min-width: 400px !important;
+    width: 450px !important;
+    /* Base width as requested */
+    min-width: 300px !important;
 }
 
-/* Expand on hover - add half more (850px * 1.5 = 1275px) */
+/* Expand on hover/focus */
 .google-search-bar-compact:hover,
 .google-search-bar-compact:focus-within {
-    max-width: 1275px !important;
-    min-width: 600px !important;
+    width: 600px !important;
+    /* Expand to 600px as requested */
+    max-width: 80vw !important;
 }
 
 .google-search-bar {
@@ -25,27 +27,28 @@
     background-color: #ffffff;
     border: 1px solid #dfe1e5;
     border-radius: 8px;
-    padding: 10px 20px;
-    width: 100%;
-    max-width: 850px;
-    min-width: 600px;
-    height: 52px;
-    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 8px 20px;
+    height: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     margin-right: 20px;
     margin-left: 20px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1000;
 }
 
 .google-search-bar:hover {
-    box-shadow: 0 2px 12px rgba(32, 33, 36, 0.35), 0 4px 16px rgba(32, 33, 36, 0.15);
-    border-color: #c0c4cc;
-    transform: scale(1.04);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-color: #a0c0e0;
+    transform: translateY(-1px) scale(1.02);
 }
 
 .google-search-bar:focus-within {
-    box-shadow: 0 2px 12px rgba(0, 102, 204, 0.3), 0 4px 16px rgba(0, 102, 204, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.25);
     border-color: #0066CC;
-    transform: scale(1.05);
+    transform: translateY(-1px) scale(1.02);
+    background-color: #fff;
 }
 
 .google-search-input {
@@ -53,23 +56,23 @@
     border: none;
     outline: none;
     font-size: 18px;
-    padding: 8px;
+    padding: 0 10px;
     color: #202124;
     background-color: transparent;
     font-family: 'Inter', sans-serif;
     cursor: text;
-    caret-color: #0066CC;
+    width: 100%;
 }
 
 .google-search-input::placeholder {
-    color: #9aa0a6;
-    opacity: 1;
+    color: #757575;
+    opacity: 0.8;
 }
 
 .search-icon {
-    color: #9aa0a6;
+    color: #5f6368;
     font-size: 20px;
-    margin-right: 12px;
+    margin-right: 10px;
     transition: color 0.3s ease;
 }
 
@@ -82,24 +85,21 @@
 .dark-theme .google-search-bar {
     background-color: #303134;
     border: 1px solid #5f6368;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .dark-theme .google-search-bar:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
-    border-color: #8a8f98;
-    transform: scale(1.04);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border-color: #8ab4f8;
 }
 
 .dark-theme .google-search-bar:focus-within {
-    box-shadow: 0 2px 12px rgba(0, 204, 255, 0.3), 0 4px 16px rgba(0, 204, 255, 0.15);
-    border-color: #00CCFF;
-    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(138, 180, 248, 0.25);
+    border-color: #8ab4f8;
 }
 
 .dark-theme .google-search-input {
     color: #e8eaed;
-    caret-color: #00CCFF;
 }
 
 .dark-theme .google-search-input::placeholder {
@@ -112,5 +112,5 @@
 
 .dark-theme .google-search-bar:hover .search-icon,
 .dark-theme .google-search-bar:focus-within .search-icon {
-    color: #00CCFF;
+    color: #8ab4f8;
 }

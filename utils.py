@@ -155,3 +155,41 @@ def apply_chart_styling(fig, is_horizontal_bar=True, add_margin=True):
     )
     
     return fig
+
+def apply_large_fonts_to_chart(fig, theme='light'):
+    """
+    Apply larger font sizes to all chart elements for better readability.
+    Increases data labels, axis labels, and tick labels.
+    
+    Args:
+        fig: Plotly figure object
+        theme: 'light' or 'dark' for color scheme
+    """
+    text_color = '#e8eaed' if theme == 'dark' else '#001F3F'
+    
+    fig.update_layout(
+        font=dict(
+            size=16,  # Increased base font size
+            color=text_color,
+            family='Inter'
+        ),
+        xaxis=dict(
+            title=dict(font=dict(size=18, color=text_color)),  # X-axis title
+            tickfont=dict(size=16, color=text_color)             # X-axis tick labels
+        ),
+        yaxis=dict(
+            title=dict(font=dict(size=18, color=text_color)),  # Y-axis title  
+            tickfont=dict(size=16, color=text_color)             # Y-axis tick labels - LARGER
+        ),
+        legend=dict(
+            font=dict(size=15, color=text_color)
+        )
+    )
+    
+    # Update data labels (textfont) for all traces
+    fig.update_traces(
+        textfont=dict(size=16, color=text_color)  # Data labels on bars/slices
+    )
+    
+    return fig
+

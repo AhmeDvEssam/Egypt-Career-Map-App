@@ -1,6 +1,7 @@
 /* ============================================
    INTERACTIVE CHARTS ENHANCEMENTS
    Added: November 29, 2025 - OPTION C
+   Modified: December 4, 2025 - Removed "Click to filter" badge
    ============================================ */
 
 /* ============================================
@@ -19,7 +20,8 @@
 }
 
 .hoverlayer .hovertext text {
-    font-size: 16px !important;
+    font-size: 18px !important;
+    /* Increased from 16px */
     font-weight: 600 !important;
     fill: white !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
@@ -78,29 +80,7 @@
     box-shadow: 0 0 30px rgba(0, 102, 204, 0.3) !important;
 }
 
-/* "Click to filter" indicator badge */
-.interactive-chart::after {
-    content: '🖱️ Click to filter' !important;
-    position: absolute !important;
-    top: 10px !important;
-    right: 10px !important;
-    background: linear-gradient(135deg, rgba(0, 102, 204, 0.9), rgba(51, 153, 255, 0.9)) !important;
-    color: white !important;
-    padding: 6px 12px !important;
-    border-radius: 20px !important;
-    font-size: 0.75rem !important;
-    font-weight: 700 !important;
-    opacity: 0 !important;
-    transition: opacity 0.3s ease !important;
-    pointer-events: none !important;
-    z-index: 1000 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
-
-.interactive-chart:hover::after {
-    opacity: 1 !important;
-    animation: pulse-badge 2s infinite !important;
-}
+/* "Click to filter" indicator badge - REMOVED per user request */
 
 /* ============================================
    4. ACTIVE FILTER INDICATOR
@@ -151,6 +131,7 @@
         opacity: 0;
         transform: translateX(-50%) translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
@@ -213,9 +194,11 @@
     0% {
         box-shadow: 0 0 0 0 rgba(0, 204, 255, 0.7);
     }
+
     70% {
         box-shadow: 0 0 0 20px rgba(0, 204, 255, 0);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(0, 204, 255, 0);
     }
@@ -295,7 +278,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ============================================
@@ -314,7 +299,8 @@
 }
 
 .legend .traces .trace text {
-    font-size: 14px !important;
+    font-size: 16px !important;
+    /* Increased from 14px */
     font-weight: 600 !important;
     fill: white !important;
 }

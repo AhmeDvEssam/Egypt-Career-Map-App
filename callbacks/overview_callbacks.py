@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 from app_instance import app
 from data_loader import df
-from utils import get_color_scale, apply_visual_highlighting, apply_chart_styling
+from utils import get_color_scale, apply_visual_highlighting, apply_chart_styling, apply_large_fonts_to_chart
 
 @app.callback(
     [Output('total-jobs-kpi', 'children'),
@@ -138,5 +138,11 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     top_categories_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
     apply_visual_highlighting(top_categories_fig, vc[col].tolist(), categories, is_pie=False)
     apply_chart_styling(top_categories_fig, is_horizontal_bar=True)
+    
+    # Apply large fonts to all charts
+    employment_type_fig = apply_large_fonts_to_chart(employment_type_fig, theme)
+    work_mode_fig = apply_large_fonts_to_chart(work_mode_fig, theme)
+    career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme)
+    top_categories_fig = apply_large_fonts_to_chart(top_categories_fig, theme)
     
     return f"{total_jobs:,}", f"{total_companies:,}", f"{total_categories:,}", f"{avg_applicants:.1f}", remote_hybrid_pct, latest_date, employment_type_fig, work_mode_fig, career_level_fig, top_categories_fig

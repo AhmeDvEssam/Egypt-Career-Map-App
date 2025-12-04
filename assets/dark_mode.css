@@ -1,0 +1,34 @@
+/* Dark Mode Body and Container Backgrounds */
+.dark-theme,
+.dark-theme body,
+.dark-theme html,
+.dark-theme #theme-container,
+.dark-theme .content-container {
+    background: #1a1a1a !important;
+    color: #e8eaed !important;
+}
+
+/* Dark mode for all cards and containers */
+.dark-theme .glass-effect,
+.dark-theme .kpi-card-v2 {
+    background: #2a2a2a !important;
+    border-color: #3a3a3a !important;
+    color: #e8eaed !important;
+}
+
+.dark-theme .kpi-label-v2,
+.dark-theme .kpi-value-v2,
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme h4,
+.dark-theme h5,
+.dark-theme h6 {
+    color: #e8eaed !important;
+}
+
+/* Dark mode for charts */
+.dark-theme .js-plotly-plot .plotly,
+.dark-theme .plotly {
+    background: #2a2a2a !important;
+}
