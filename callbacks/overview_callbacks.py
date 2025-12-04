@@ -71,7 +71,6 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
         filtered_df = filtered_df[filtered_df['posted'].dt.month.isin(months)]
     
     # Apply search text filter
-    # Apply search text filter
     if search_text and search_text.strip():
         from utils import filter_dataframe_by_search
         filtered_df = filter_dataframe_by_search(filtered_df, search_text)
@@ -96,7 +95,7 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
         pct = (remote_hybrid_count / len(filtered_df)) * 100
         remote_hybrid_pct = f"{pct:.1f}%"
     
-    # Charts
+    # Charts - Use theme for color scale
     deep_blue_scale = get_color_scale(theme)
 
     # Employment Type chart
@@ -107,7 +106,7 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     employment_type_fig = px.bar(vc, x='count', y=col, title='Jobs by Employment Type', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
     employment_type_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
     apply_visual_highlighting(employment_type_fig, vc[col].tolist(), employment_types, is_pie=False)
-    apply_chart_styling(employment_type_fig, is_horizontal_bar=True)
+    apply_chart_styling(employment_type_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
     
     # Work Mode - Donut Chart
     col = 'Work Mode'
@@ -117,7 +116,7 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     work_mode_fig = px.pie(vc, values='count', names=col, title='Jobs by Work Mode', hole=0.5, color_discrete_sequence=px.colors.sequential.Blues_r)
     work_mode_fig.update_traces(textposition='inside', textinfo='percent+label', rotation=-45)
     apply_visual_highlighting(work_mode_fig, vc[col].tolist(), work_modes, is_pie=True)
-    apply_chart_styling(work_mode_fig, is_horizontal_bar=False)
+    apply_chart_styling(work_mode_fig, is_horizontal_bar=False, add_margin=False, theme=theme)  # ✅ Pass theme
     
     # Career Level
     col = 'Career Level'
@@ -127,7 +126,7 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     career_level_fig = px.bar(vc, x='count', y=col, title='Jobs by Career Level', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
     career_level_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
     apply_visual_highlighting(career_level_fig, vc[col].tolist(), career_levels, is_pie=False)
-    apply_chart_styling(career_level_fig, is_horizontal_bar=True)
+    apply_chart_styling(career_level_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
 
     # Top Categories
     col = 'Category'
@@ -137,12 +136,12 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     top_categories_fig = px.bar(vc, x='count', y=col, title='Top 10 Categories', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
     top_categories_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
     apply_visual_highlighting(top_categories_fig, vc[col].tolist(), categories, is_pie=False)
-    apply_chart_styling(top_categories_fig, is_horizontal_bar=True)
+    apply_chart_styling(top_categories_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
     
-    # Apply large fonts to all charts
-    employment_type_fig = apply_large_fonts_to_chart(employment_type_fig, theme)
-    work_mode_fig = apply_large_fonts_to_chart(work_mode_fig, theme)
-    career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme)
-    top_categories_fig = apply_large_fonts_to_chart(top_categories_fig, theme)
+    # Apply large fonts to all charts - ✅ Pass theme
+    employment_type_fig = apply_large_fonts_to_chart(employment_type_fig, theme=theme)
+    work_mode_fig = apply_large_fonts_to_chart(work_mode_fig, theme=theme)
+    career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme=theme)
+    top_categories_fig = apply_large_fonts_to_chart(top_categories_fig, theme=theme)
     
     return f"{total_jobs:,}", f"{total_companies:,}", f"{total_categories:,}", f"{avg_applicants:.1f}", remote_hybrid_pct, latest_date, employment_type_fig, work_mode_fig, career_level_fig, top_categories_fig
