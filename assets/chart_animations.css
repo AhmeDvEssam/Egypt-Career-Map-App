@@ -1,0 +1,402 @@
+/* ============================================
+   🎬 CHART ANIMATIONS & ENHANCEMENTS
+   Perfect Transitions, Hover Effects, Smooth CSS
+   Created: December 4, 2025
+   ============================================ */
+
+/* ============================================
+   1. CHART CONTAINER - SMOOTH FADE IN
+   ============================================ */
+
+.js-plotly-plot {
+    animation: chartFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible !important;
+    background: transparent !important;
+    transition: all 0.3s ease;
+}
+
+@keyframes chartFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Hover State - Subtle Glow */
+.js-plotly-plot:hover {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 8px 24px rgba(0, 102, 204, 0.12));
+}
+
+/* ============================================
+   2. BAR HOVER EFFECTS - SMOOTH LIFT
+   ============================================ */
+
+.js-plotly-plot .plotly .bars path {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center;
+    cursor: pointer;
+}
+
+.js-plotly-plot .plotly .bars path:hover {
+    transform: translateY(-6px) scale(1.02);
+    filter: brightness(1.15) drop-shadow(0 4px 16px rgba(0, 204, 255, 0.5));
+}
+
+/* Active/Clicked Bar */
+.js-plotly-plot .plotly .bars path:active {
+    transform: translateY(-4px) scale(1.01);
+    filter: brightness(1.3);
+}
+
+/* ============================================
+   3. PIE/DONUT SLICE HOVER - EXPAND OUT
+   ============================================ */
+
+.js-plotly-plot .plotly .slice path {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center;
+    cursor: pointer;
+}
+
+.js-plotly-plot .plotly .slice path:hover {
+    transform: scale(1.08);
+    filter: brightness(1.15) drop-shadow(0 4px 16px rgba(0, 204, 255, 0.5));
+}
+
+/* ============================================
+   4. DATA LABEL ANIMATIONS - PULSE ON HOVER
+   ============================================ */
+
+.js-plotly-plot .plotly text.nums {
+    transition: all 0.2s ease;
+    font-weight: 700 !important;
+}
+
+.js-plotly-plot:hover .plotly text.nums {
+    animation: labelPulse 2s ease-in-out infinite;
+}
+
+@keyframes labelPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+}
+
+/* ============================================
+   5. AXIS LINES - SUBTLE GLOW
+   ============================================ */
+
+.js-plotly-plot .plotly .gridlayer path {
+    transition: stroke-opacity 0.3s ease;
+}
+
+.js-plotly-plot:hover .plotly .gridlayer path {
+    stroke-opacity: 0.15;
+}
+
+/* ============================================
+   6. TOOLTIP ANIMATIONS - SMOOTH POPUP
+   ============================================ */
+
+.hoverlayer {
+    animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.hoverlayer .hovertext {
+    animation: tooltipGlow 2s ease-in-out infinite;
+}
+
+@keyframes tooltipGlow {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 8px 40px rgba(0, 102, 204, 0.6);
+    }
+}
+
+/* ============================================
+   7. KPI CARDS - ENHANCED ANIMATIONS
+   ============================================ */
+
+/* Modern Card Design */
+.kpi-card-v2 {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 102, 204, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: kpiSlideIn 0.5s ease;
+}
+
+@keyframes kpiSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Hover State - Dramatic Lift */
+.kpi-card-v2:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 102, 204, 0.2);
+    border-color: rgba(0, 102, 204, 0.4);
+}
+
+/* Shimmer Effect on Hover */
+.kpi-card-v2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 204, 255, 0.1),
+        transparent
+    );
+    transition: left 0.6s ease;
+}
+
+.kpi-card-v2:hover::before {
+    left: 100%;
+}
+
+/* Icon Box Animation */
+.kpi-icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 204, 255, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kpi-card-v2:hover .kpi-icon-box {
+    transform: rotate(360deg) scale(1.1);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.2), rgba(0, 204, 255, 0.3));
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.4);
+}
+
+/* Value Animation */
+.kpi-value-v2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #001F3F;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.kpi-card-v2:hover .kpi-value-v2 {
+    color: #0066CC;
+    transform: scale(1.08);
+    text-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+/* Label Styling */
+.kpi-label-v2 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
+}
+
+.kpi-card-v2:hover .kpi-label-v2 {
+    color: #0066CC;
+}
+
+/* ============================================
+   8. FLOATING ANIMATION - SUBTLE MOVEMENT
+   ============================================ */
+
+.kpi-float {
+    animation: gentleFloat 6s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Delay for staggered effect */
+.kpi-card-v2:nth-child(1) { animation-delay: 0s; }
+.kpi-card-v2:nth-child(2) { animation-delay: 0.2s; }
+.kpi-card-v2:nth-child(3) { animation-delay: 0.4s; }
+.kpi-card-v2:nth-child(4) { animation-delay: 0.6s; }
+.kpi-card-v2:nth-child(5) { animation-delay: 0.8s; }
+.kpi-card-v2:nth-child(6) { animation-delay: 1s; }
+
+/* ============================================
+   9. LOADING SKELETON - SMOOTH PULSE
+   ============================================ */
+
+@keyframes skeletonPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading-skeleton {
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 102, 204, 0.05) 0%,
+        rgba(0, 102, 204, 0.15) 50%,
+        rgba(0, 102, 204, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeletonShimmer 2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ============================================
+   10. DARK MODE ENHANCEMENTS
+   ============================================ */
+
+.dark-theme .kpi-card-v2 {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.12), rgba(0, 76, 153, 0.08));
+    border-color: rgba(0, 102, 204, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .kpi-card-v2:hover {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.18), rgba(0, 76, 153, 0.12));
+    box-shadow: 0 20px 50px rgba(0, 102, 204, 0.4);
+}
+
+.dark-theme .kpi-value-v2 {
+    color: #e8eaed;
+}
+
+.dark-theme .kpi-card-v2:hover .kpi-value-v2 {
+    color: #00CCFF;
+    text-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+}
+
+.dark-theme .kpi-label-v2 {
+    color: #9CA3AF;
+}
+
+.dark-theme .kpi-card-v2:hover .kpi-label-v2 {
+    color: #00CCFF;
+}
+
+/* ============================================
+   11. RESPONSIVE ANIMATIONS
+   ============================================ */
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .kpi-card-v2:hover {
+        transform: translateY(-4px) scale(1.01);
+    }
+    
+    .js-plotly-plot .plotly .bars path:hover {
+        transform: translateY(-3px) scale(1.01);
+    }
+}
+
+/* ============================================
+   12. CUSTOM SCROLLBAR FOR CHARTS
+   ============================================ */
+
+.js-plotly-plot::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.js-plotly-plot::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.js-plotly-plot::-webkit-scrollbar-thumb {
+    background: rgba(0, 102, 204, 0.3);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.js-plotly-plot::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 102, 204, 0.6);
+}
+
+/* Dark Mode Scrollbar */
+.dark-theme .js-plotly-plot::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .js-plotly-plot::-webkit-scrollbar-thumb {
+    background: rgba(0, 204, 255, 0.3);
+}
+
+.dark-theme .js-plotly-plot::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 204, 255, 0.6);
+}
+
+/* ============================================
+   END OF CHART ANIMATIONS
+   ============================================ */
