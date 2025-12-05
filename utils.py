@@ -153,7 +153,7 @@ def apply_chart_styling(fig, is_horizontal_bar=True, add_margin=True, theme='lig
         theme: 'light' or 'dark' for color scheme
     """
     # Theme-aware text color
-    text_color = '#e8eaed' if theme == 'dark' else '#001F3F'
+    text_color = '#ffffff' if theme == 'dark' else '#001F3F'
     grid_color = 'rgba(255, 255, 255, 0.1)' if theme == 'dark' else 'rgba(0, 0, 0, 0.1)'
     
     # Add generous margin to prevent data label truncation
@@ -275,7 +275,7 @@ def apply_large_fonts_to_chart(fig, theme='light'):
         fig: Plotly figure object
         theme: 'light' or 'dark' for color scheme
     """
-    text_color = '#e8eaed' if theme == 'dark' else '#001F3F'
+    text_color = '#ffffff' if theme == 'dark' else '#001F3F'
     grid_color = 'rgba(255, 255, 255, 0.08)' if theme == 'dark' else 'rgba(0, 0, 0, 0.08)'
     
     fig.update_layout(

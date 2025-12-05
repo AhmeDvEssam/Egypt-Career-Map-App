@@ -24,45 +24,54 @@ body.dark-mode::before {
     z-index: -1;
 }
 
-/* 2. Glassmorphism Cards */
+/* 2. Glassmorphism Cards - REVISED FOR VISIBILITY */
 body.dark-mode .kpi-card-v2,
 body.dark-mode .card,
 body.dark-mode .glass-effect,
 body.dark-mode .sidebar {
-    background: var(--bg-card) !important;
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: var(--shadow-lg), var(--shadow-glow) !important;
+    background: #1e293b !important;
+    /* Solid Dark Blue-Gray */
+    background: rgba(30, 41, 59, 0.95) !important;
+    /* High opacity */
+    backdrop-filter: none !important;
+    /* Remove blur to prevent rendering artifacts */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
 /* Hover Glow Effect */
 body.dark-mode .kpi-card-v2:hover {
-    border-color: rgba(79, 172, 254, 0.4) !important;
-    box-shadow: 0 8px 32px rgba(79, 172, 254, 0.2) !important;
-    transform: translateY(-5px);
+    border-color: #38bdf8 !important;
+    /* Solid Cyan */
+    transform: translateY(-2px);
 }
 
 /* 3. Typography & Gradients */
 body.dark-mode h1,
-body.dark-mode .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    text-shadow: 0 0 30px rgba(79, 172, 254, 0.3);
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5 {
+    color: #ffffff !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
 }
 
 body.dark-mode .kpi-label-v2 {
-    color: var(--text-secondary) !important;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    font-weight: 600;
+    color: #cbd5e1 !important;
+    /* Light Gray */
+    font-size: 0.9rem;
+    font-weight: 700;
+    opacity: 1 !important;
 }
 
 body.dark-mode .kpi-value-v2 {
-    color: white !important;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    /* Pure White */
+    text-shadow: none !important;
+    opacity: 1 !important;
+    font-weight: 800;
+    z-index: 10;
 }
 
 /* 4. Neon Icons */
