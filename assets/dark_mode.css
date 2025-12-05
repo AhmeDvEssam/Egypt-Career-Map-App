@@ -1,92 +1,111 @@
 /* ============================================
-   DARK MODE THEME - PREMIUM & UNIFIED
+   PREMIUM DARK MODE - GLASSMORPHISM & NEON
+   Inspired by Modern Crypto/SaaS Dashboards
    ============================================ */
 
-/* 1. Main Backgrounds */
-body.dark-mode,
-body.dark-mode #theme-container,
-body.dark-mode .content-container {
-    background-color: #0a1929 !important;
-    /* Deep Navy Blue */
-    color: #e8eaed !important;
+/* 1. Global Background & Atmosphere */
+body.dark-mode {
+    background: var(--bg-page) !important;
+    background-image: var(--bg-gradient) !important;
+    min-height: 100vh;
 }
 
-/* 2. Cards & Containers (Glass Effect) */
+body.dark-mode::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 15% 50%, rgba(79, 172, 254, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(161, 140, 209, 0.08), transparent 25%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 2. Glassmorphism Cards */
 body.dark-mode .kpi-card-v2,
+body.dark-mode .card,
 body.dark-mode .glass-effect,
-body.dark-mode .card {
-    background: rgba(17, 34, 64, 0.8) !important;
-    /* Semi-transparent Dark Blue */
-    border-color: rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
-    backdrop-filter: blur(10px);
+body.dark-mode .sidebar {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: var(--shadow-lg), var(--shadow-glow) !important;
 }
 
-/* 3. Typography */
+/* Hover Glow Effect */
+body.dark-mode .kpi-card-v2:hover {
+    border-color: rgba(79, 172, 254, 0.4) !important;
+    box-shadow: 0 8px 32px rgba(79, 172, 254, 0.2) !important;
+    transform: translateY(-5px);
+}
+
+/* 3. Typography & Gradients */
 body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5,
-body.dark-mode h6,
 body.dark-mode .gradient-text {
-    color: #ffffff !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    text-shadow: 0 0 30px rgba(79, 172, 254, 0.3);
 }
 
 body.dark-mode .kpi-label-v2 {
-    color: #94a3b8 !important;
-    /* Slate 400 */
+    color: var(--text-secondary) !important;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
 body.dark-mode .kpi-value-v2 {
-    color: #38bdf8 !important;
-    /* Sky 400 */
+    color: white !important;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
-/* 4. Icons */
+/* 4. Neon Icons */
 body.dark-mode .kpi-icon-box {
-    background: rgba(56, 189, 248, 0.1) !important;
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.1)) !important;
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    box-shadow: inset 0 0 20px rgba(79, 172, 254, 0.1);
 }
 
 body.dark-mode .kpi-icon-box i {
-    color: #38bdf8 !important;
+    color: #4facfe !important;
+    filter: drop-shadow(0 0 5px #4facfe);
 }
 
-/* 5. Charts */
-body.dark-mode .js-plotly-plot .plotly,
-body.dark-mode .plotly {
-    background: transparent !important;
-}
-
-/* 6. Inputs & Dropdowns */
-body.dark-mode .Select-control {
-    background-color: #112240 !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #e8eaed !important;
+/* 5. Inputs & Filters (Glass Style) */
+body.dark-mode .Select-control,
+body.dark-mode input.google-search-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    backdrop-filter: blur(10px);
 }
 
 body.dark-mode .Select-menu-outer {
-    background-color: #112240 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-body.dark-mode .Select-option {
-    background-color: #112240 !important;
-    color: #e8eaed !important;
+    background: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 body.dark-mode .Select-option.is-focused {
-    background-color: #1e3a8a !important;
-    /* Dark Blue Highlight */
+    background: linear-gradient(90deg, rgba(79, 172, 254, 0.2), transparent);
 }
 
-body.dark-mode input.google-search-input {
-    background-color: #112240 !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
+/* 6. Sidebar Specifics */
+body.dark-mode .sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-body.dark-mode input.google-search-input::placeholder {
-    color: #64748b !important;
+/* Scrollbar Polish */
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: transparent;
 }
