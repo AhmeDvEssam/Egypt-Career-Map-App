@@ -220,8 +220,32 @@ body.sidebar-collapsed .content-container {
         transform: translateX(0);
     }
 
-    .content-container {
-        margin-left: 0;
-        padding: 15px;
+    /* ============================================
+   CRITICAL VISIBILITY FIXES (Light Mode)
+   ============================================ */
+
+    /* Force specific colors for Light Mode (Default) */
+    body:not(.dark-mode) .kpi-card-v2 {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
     }
-}
+
+    body:not(.dark-mode) .kpi-value-v2 {
+        color: #001F3F !important;
+        /* Navy Blue */
+        text-shadow: none !important;
+        font-weight: 800 !important;
+    }
+
+    body:not(.dark-mode) .kpi-label-v2 {
+        color: #475569 !important;
+        /* Slate 600 */
+        font-weight: 600 !important;
+    }
+
+    body:not(.dark-mode) h1,
+    body:not(.dark-mode) h2,
+    body:not(.dark-mode) h3 {
+        color: #0f172a !important;
+    }
