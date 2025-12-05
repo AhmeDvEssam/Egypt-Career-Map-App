@@ -3,6 +3,7 @@ import plotly.express as px
 import pandas as pd
 from app_instance import app
 from data_loader import df, skills_df
+from utils import apply_large_fonts_to_chart
 
 @app.callback(
     [Output('total-skills-kpi', 'children'),
@@ -25,9 +26,10 @@ from data_loader import df, skills_df
      Input('sidebar-in-city-filter', 'value'),
      Input('sidebar-avg-exp-filter', 'value'),
      Input('sidebar-month-filter', 'value'),
-     Input('global-search-bar', 'value')]
+     Input('global-search-bar', 'value'),
+     Input('theme-store', 'data')]
 )
-def update_skills_analysis(companies, cities, categories, work_modes, employment_types, career_levels, education_levels, start_date, end_date, in_cities, avg_exp_range, months, search_text):
+def update_skills_analysis(companies, cities, categories, work_modes, employment_types, career_levels, education_levels, start_date, end_date, in_cities, avg_exp_range, months, search_text, theme):
     filtered_df = df.copy()
     
     # Apply all filters
@@ -191,5 +193,11 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
             fig.update_traces(hovertemplate='<span style="color:white; font-family:Inter;"><b>%{x}</b><br>Count: %{y}</span><extra></extra>')
         elif fig == wordcloud_fig:
             fig.update_traces(hovertemplate='<span style="color:white; font-family:Inter;"><b>%{label}</b><br>Count: %{value}</span><extra></extra>')
+    
+    # Apply large fonts to all charts
+    wordcloud_fig = apply_large_fonts_to_chart(wordcloud_fig, theme=theme)
+    category_breakdown_fig = apply_large_fonts_to_chart(category_breakdown_fig, theme=theme)
+    top_skills_fig = apply_large_fonts_to_chart(top_skills_fig, theme=theme)
+    skills_trend_fig = apply_large_fonts_to_chart(skills_trend_fig, theme=theme)
     
     return f"{unique_skills:,}", top_skill, f"{avg_skills_per_job}", wordcloud_fig, category_breakdown_fig, top_skills_fig, skills_trend_fig, top_skill_cat

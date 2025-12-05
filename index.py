@@ -22,8 +22,17 @@ app.layout = html.Div([
         # Navbar with custom layout
         dbc.Navbar(
             dbc.Container([
+                # Sidebar Toggle Button
+                html.Button(
+                    html.I(className="fas fa-bars"),
+                    id='sidebar-toggle-btn',
+                    className='sidebar-toggle-btn me-3',
+                    n_clicks=0
+                ),
+                
                 # Brand on the left
-                dbc.NavbarBrand("Hire Q - Job Market Insights", href="/"),
+                dbc.NavbarBrand("Hire Q", href="/", className="d-none d-md-block"),
+                dbc.NavbarBrand("HQ", href="/", className="d-md-none"),
                 
                 # Search bar next to brand (on the left)
                 html.Div([

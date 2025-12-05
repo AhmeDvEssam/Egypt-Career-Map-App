@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 from app_instance import app
 from data_loader import df
-from utils import get_color_scale
+from utils import get_color_scale, apply_large_fonts_to_chart
 
 @app.callback(
     [Output('time-jobs-kpi', 'children'),
@@ -174,4 +174,9 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
     if 'Day' in filtered_df.columns and not filtered_df['Day'].dropna().empty:
         peak_day = filtered_df['Day'].value_counts().index[0]
 
+    # Apply large fonts to all charts
+    month_day_fig = apply_large_fonts_to_chart(month_day_fig, theme=theme)
+    month_bar_fig = apply_large_fonts_to_chart(month_bar_fig, theme=theme)
+    applicants_trend_fig = apply_large_fonts_to_chart(applicants_trend_fig, theme=theme)
+    
     return f"{total_jobs_period:,}", mom_growth, avg_applicants_trend, peak_day, month_day_fig, month_bar_fig, applicants_trend_fig

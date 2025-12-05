@@ -206,7 +206,11 @@ def apply_chart_styling(fig, is_horizontal_bar=True, add_margin=True, theme='lig
         transition=dict(
             duration=500,
             easing='cubic-in-out'
-        )
+        ),
+        
+        # Legend - Clean
+        showlegend=False,  # Hide standard legend if not needed
+        coloraxis_showscale=False,  # ❌ HIDE COLOR BAR (LEGEND)
     )
     
     # 📊 AXIS STYLING
@@ -234,28 +238,38 @@ def apply_chart_styling(fig, is_horizontal_bar=True, add_margin=True, theme='lig
     )
     
     # 🔢 DATA LABELS - Large, Bold, Always Visible
+    # Apply common font settings first
     fig.update_traces(
-        textposition='outside',  # Labels outside bars for clarity
         textfont=dict(
-            size=20,  # LARGE data labels
+            size=14,
             color=text_color,
             family='Inter',
-            weight=700  # Bold
-        ),
-        cliponaxis=False  # Allow labels to overflow chart area
+            weight=600
+        )
     )
+    
+    # Apply type-specific settings
+    for trace in fig.data:
+        if trace.type == 'bar':
+            trace.update(textposition='outside', cliponaxis=False)
+        elif trace.type == 'scatter':
+            trace.update(textposition='top center', cliponaxis=False)
+        elif trace.type in ['pie', 'donut']:
+            trace.update(textposition='inside')
+        elif trace.type in ['treemap', 'sunburst']:
+            trace.update(textposition='middle center')
     
     return fig
 
 def apply_large_fonts_to_chart(fig, theme='light'):
     """
-    🔤 APPLY EXTRA LARGE FONTS - Maximum Readability
+    🔤 APPLY OPTIMIZED FONTS - Professional Readability
     
-    Increases all text sizes for better visibility:
-    - Data labels: 22px (HUGE)
-    - Y-axis labels: 20px (category names)
+    Optimized text sizes for better visibility without breaking layout:
+    - Data labels: 14px (Readable but fits)
+    - Y-axis labels: 13px (Clear category names)
     - X-axis: HIDDEN (per user request)
-    - Titles: 26px
+    - Titles: 16px (Prominent but not huge)
     
     Args:
         fig: Plotly figure object
@@ -265,50 +279,59 @@ def apply_large_fonts_to_chart(fig, theme='light'):
     grid_color = 'rgba(255, 255, 255, 0.08)' if theme == 'dark' else 'rgba(0, 0, 0, 0.08)'
     
     fig.update_layout(
-        # Base font - LARGE
+        # Base font - Optimized
         font=dict(
-            size=20,
+            size=13,
             color=text_color,
             family='Inter'
         ),
         
-        # Title - EXTRA LARGE
+        # Title - Professional Size
         title=dict(
-            font=dict(size=26, color=text_color, family='Inter', weight=700)
+            font=dict(size=16, color=text_color, family='Inter', weight=700)
         ),
         
         # X-axis - HIDDEN per user request
         xaxis=dict(
             showticklabels=False,  # ❌ Hide X-axis numbers
-            title=dict(font=dict(size=0)),  # Hide X-axis title too
+            title=dict(text=''),  # Hide X-axis title
             showgrid=True,
             gridcolor=grid_color,
             gridwidth=1
         ),
         
-        # Y-axis - LARGE & VISIBLE
+        # Y-axis - Clear & Visible
         yaxis=dict(
-            title=dict(font=dict(size=22, color=text_color)),  # Y-axis title
-            tickfont=dict(size=20, color=text_color, family='Inter'),  # ✅ LARGE Y-axis labels
+            title=dict(font=dict(size=14, color=text_color)),  # Y-axis title
+            tickfont=dict(size=13, color=text_color, family='Inter'),  # ✅ Readable Y-axis labels
             showgrid=False
         ),
         
-        # Legend - LARGE
+        # Legend - Balanced
         legend=dict(
-            font=dict(size=18, color=text_color)
+            font=dict(size=13, color=text_color)
         )
     )
     
-    # Data labels - MAXIMUM SIZE
+    # Data labels - OPTIMIZED SIZE & POSITION
     fig.update_traces(
         textfont=dict(
-            size=22,  # ✅ HUGE data labels on bars
+            size=14,
             color=text_color,
             family='Inter',
-            weight=700
-        ),
-        textposition='outside',
-        cliponaxis=False
+            weight=600
+        )
     )
+    
+    # Apply type-specific settings safely
+    for trace in fig.data:
+        if trace.type == 'bar':
+            trace.update(textposition='outside', cliponaxis=False)
+        elif trace.type == 'scatter':
+            trace.update(textposition='top center', cliponaxis=False)
+        elif trace.type in ['pie', 'donut']:
+            trace.update(textposition='inside')
+        elif trace.type in ['treemap', 'sunburst']:
+            trace.update(textposition='middle center')
     
     return fig

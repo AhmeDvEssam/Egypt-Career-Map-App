@@ -80,8 +80,8 @@
     --z-tooltip: 1050;
 }
 
-/* Dark Theme */
-.dark-theme {
+/* Dark Mode Theme */
+body.dark-mode {
     --bg-page: #0F172A;
     --bg-card: #1E293B;
     --bg-hover: #334155;

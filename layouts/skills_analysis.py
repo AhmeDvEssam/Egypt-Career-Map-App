@@ -15,7 +15,7 @@ def skills_page_layout():
                     html.Div("Total Unique Skills", className='kpi-label-v2'),
                     html.Div(id='total-skills-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -25,7 +25,7 @@ def skills_page_layout():
                     html.Div("Most Demanded Skill", className='kpi-label-v2'),
                     html.Div(id='top-skill-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -35,7 +35,7 @@ def skills_page_layout():
                     html.Div("Avg Skills per Job", className='kpi-label-v2'),
                     html.Div(id='avg-skills-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -45,7 +45,7 @@ def skills_page_layout():
                     html.Div("Top Skill Category", className='kpi-label-v2'),
                     html.Div(id='top-skill-cat-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
         ], style={'marginBottom': 30}),
         
         # Main visualizations

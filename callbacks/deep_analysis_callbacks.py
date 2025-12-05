@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from app_instance import app
 from data_loader import df
-from utils import get_color_scale, create_empty_chart
+from utils import get_color_scale, create_empty_chart, apply_large_fonts_to_chart
 
 @app.callback(
     [Output('top-companies-chart', 'figure'),
@@ -121,9 +121,13 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
         else:
-            company_performance_fig = create_empty_chart(title)
+            company_performance_fig = create_empty_chart(title, theme=theme)
     else:
-        company_performance_fig = create_empty_chart('Top Companies')
+        company_performance_fig = create_empty_chart('Top Companies', theme=theme)
+    
+    # Apply large fonts to company performance chart
+    if not isinstance(company_performance_fig.data, tuple) or len(company_performance_fig.data) > 0:
+        company_performance_fig = apply_large_fonts_to_chart(company_performance_fig, theme=theme)
     
     # CHART 2: Experience Level Demand
     if 'Year Of Exp_Avg' in filtered_df.columns and not filtered_df.empty:
@@ -162,9 +166,13 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
         else:
-            experience_buckets_fig = create_empty_chart('Experience Level Demand')
+            experience_buckets_fig = create_empty_chart('Experience Level Demand', theme=theme)
     else:
-        experience_buckets_fig = create_empty_chart('Experience Level Demand')
+        experience_buckets_fig = create_empty_chart('Experience Level Demand', theme=theme)
+    
+    # Apply large fonts to experience chart
+    if not isinstance(experience_buckets_fig.data, tuple) or len(experience_buckets_fig.data) > 0:
+        experience_buckets_fig = apply_large_fonts_to_chart(experience_buckets_fig, theme=theme)
     
     # CHART 3: Career Level by Average Years of Experience
     if 'Career Level' in filtered_df.columns and 'Year Of Exp_Avg' in filtered_df.columns and not filtered_df.empty:
@@ -193,9 +201,13 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
         else:
-            career_level_fig = create_empty_chart('Career Level by Average Years of Experience')
+            career_level_fig = create_empty_chart('Career Level by Average Years of Experience', theme=theme)
     else:
-        career_level_fig = create_empty_chart('Career Level by Average Years of Experience')
+        career_level_fig = create_empty_chart('Career Level by Average Years of Experience', theme=theme)
+    
+    # Apply large fonts to career level chart
+    if not isinstance(career_level_fig.data, tuple) or len(career_level_fig.data) > 0:
+        career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme=theme)
     
     # CHART 4: Education Requirements
     if 'education_level' in filtered_df.columns and not filtered_df.empty:
@@ -222,9 +234,13 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
         else:
-            education_distribution_fig = create_empty_chart('Education Requirements')
+            education_distribution_fig = create_empty_chart('Education Requirements', theme=theme)
     else:
-        education_distribution_fig = create_empty_chart('Education Requirements')
+        education_distribution_fig = create_empty_chart('Education Requirements', theme=theme)
+    
+    # Apply large fonts to education chart
+    if not isinstance(education_distribution_fig.data, tuple) or len(education_distribution_fig.data) > 0:
+        education_distribution_fig = apply_large_fonts_to_chart(education_distribution_fig, theme=theme)
     
     # CHART 5: Company Hiring Intensity
     if 'Company' in filtered_df.columns and not filtered_df.empty and has_applicants:
@@ -254,12 +270,16 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
         else:
-            hiring_intensity_fig = create_empty_chart('Most Competitive Companies (Avg Applicants per Posting)')
+            hiring_intensity_fig = create_empty_chart('Most Competitive Companies (Avg Applicants per Posting)', theme=theme)
     else:
-        hiring_intensity_fig = create_empty_chart('Most Competitive Companies (Avg Applicants per Posting)')
+        hiring_intensity_fig = create_empty_chart('Most Competitive Companies (Avg Applicants per Posting)', theme=theme)
+    
+    # Apply large fonts to hiring intensity chart
+    if not isinstance(hiring_intensity_fig.data, tuple) or len(hiring_intensity_fig.data) > 0:
+        hiring_intensity_fig = apply_large_fonts_to_chart(hiring_intensity_fig, theme=theme)
     
     # DECOMPOSITION TREE (Disabled)
-    decomposition_tree_fig = create_empty_chart('Job Market Decomposition Tree (Temporarily Disabled)')
+    decomposition_tree_fig = create_empty_chart('Job Market Decomposition Tree (Temporarily Disabled)', theme=theme)
     
     # KPIs
     total_jobs = len(filtered_df)

@@ -5,7 +5,7 @@ import folium
 from folium.plugins import FastMarkerCluster
 from app_instance import app
 from data_loader import df
-from utils import get_color_scale, apply_visual_highlighting, apply_chart_styling
+from utils import get_color_scale, apply_visual_highlighting, apply_chart_styling, apply_large_fonts_to_chart
 
 @app.callback(
     [Output('city-total-jobs-kpi', 'children'),
@@ -91,7 +91,8 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
     # Dynamic height
     dynamic_height = max(500, len(city_counts) * 60)
     city_bar_fig.update_layout(height=dynamic_height)
-    apply_chart_styling(city_bar_fig, is_horizontal_bar=True)
+    apply_chart_styling(city_bar_fig, is_horizontal_bar=True, theme=theme)
+    city_bar_fig = apply_large_fonts_to_chart(city_bar_fig, theme=theme)
     
     # --- Generate Folium Map ---
     center_location = [26.8, 30.8]

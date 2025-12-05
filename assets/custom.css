@@ -10,7 +10,11 @@
 @import url('kpi_cards.css');
 @import url('charts.css');
 @import url('responsive.css');
-@import url('chart_animations.css'); /* 🎬 NEW: Smooth Chart Animations! */
+@import url('chart_animations.css');
+@import url('interactive_charts.css');
+@import url('theme_toggle.css');
+@import url('dark_mode.css');
+@import url('search_bar.css');
 
 :root {
     --primary-blue: #0066CC;
@@ -21,6 +25,290 @@
     --success-green: #10B981;
     --warning-orange: #F59E0B;
     --error-red: #EF4444;
+    --sidebar-width: 280px;
+    --navbar-height: 70px;
 }
 
-/* ... [REST OF CSS FILE REMAINS THE SAME - Too long to include] */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   LAYOUT STRUCTURE
+   ============================================ */
+
+/* Navbar Styling */
+.custom-navbar {
+    height: var(--navbar-height);
+    background: linear-gradient(90deg, #001F3F 0%, #003366 100%) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    padding: 0 15px;
+    /* Reduced padding */
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+.sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.3rem;
+    /* Slightly smaller */
+    color: white !important;
+    letter-spacing: -0.5px;
+    margin-right: 15px;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 6px 12px !important;
+    /* Compact padding */
+    border-radius: 6px;
+    font-size: 0.9rem;
+    /* Compact font */
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Sidebar Styling */
+.sidebar {
+    position: fixed;
+    top: var(--navbar-height);
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    padding: 24px;
+    background: white;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    z-index: 1040;
+    transition: transform 0.3s ease, width 0.3s ease;
+}
+
+/* Content Container */
+.content-container {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--navbar-height);
+    padding: 30px;
+    min-height: calc(100vh - var(--navbar-height));
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Collapsed State */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+
+body.sidebar-collapsed .content-container {
+    margin-left: 0;
+    width: 100%;
+}
+
+/* ============================================
+   SIDEBAR COMPONENTS
+   ============================================ */
+
+.sidebar h4 {
+    color: #001F3F;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group {
+    margin-bottom: 24px;
+}
+
+.filter-group label {
+    display: block;
+    font-weight: 600;
+    color: #4B5563;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+/* Dropdown Styling */
+.Select-control {
+    border-radius: 8px !important;
+    border: 1px solid #E5E7EB !important;
+    background-color: #F9FAFB !important;
+    transition: all 0.2s ease;
+}
+
+.Select-control:hover {
+    border-color: var(--primary-blue) !important;
+}
+
+.Select.is-focused .Select-control {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1) !important;
+}
+
+/* Clear Filters Button */
+#clear-filters-btn {
+    width: 100%;
+    background: #F3F4F6;
+    color: #4B5563;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#clear-filters-btn:hover {
+    background: #E5E7EB;
+    color: #1F2937;
+    transform: translateY(-1px);
+}
+
+/* More Filters Button */
+#toggle-filters-btn {
+    width: 100%;
+    background: transparent;
+    border: 2px dashed #E5E7EB;
+    color: var(--primary-blue);
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+}
+
+#toggle-filters-btn:hover {
+    border-color: var(--primary-blue);
+    background: rgba(0, 102, 204, 0.05);
+}
+
+/* ============================================
+   DARK MODE OVERRIDES
+   ============================================ */
+body.dark-mode {
+    background-color: #0a1929;
+    color: #e8eaed;
+}
+
+body.dark-mode .sidebar {
+    background-color: #0f2744;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .sidebar h4 {
+    color: #e8eaed;
+}
+
+body.dark-mode .filter-group label {
+    color: #9ca3af;
+}
+
+body.dark-mode .Select-control {
+    background-color: #1e3a5f !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+body.dark-mode .Select-menu-outer {
+    background-color: #1e3a5f !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .Select-value-label {
+    color: white !important;
+}
+
+body.dark-mode #clear-filters-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e8eaed;
+}
+
+body.dark-mode #clear-filters-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   RESPONSIVE LAYOUT
+   ============================================ */
+@media (max-width: 992px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .content-container {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    #sidebar-tab {
+        display: flex !important;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: var(--primary-blue);
+        color: white;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+        z-index: 1060;
+        cursor: pointer;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1030;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+    }
+}

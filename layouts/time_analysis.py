@@ -23,7 +23,7 @@ def time_analysis_layout():
                     html.Div("Jobs in Period", className='kpi-label-v2'),
                     html.Div(id='time-jobs-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -33,7 +33,7 @@ def time_analysis_layout():
                     html.Div("MoM Growth", className='kpi-label-v2'),
                     html.Div(id='time-growth-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -43,7 +43,7 @@ def time_analysis_layout():
                     html.Div("Avg Applicants Trend", className='kpi-label-v2'),
                     html.Div(id='time-applicants-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -53,7 +53,7 @@ def time_analysis_layout():
                     html.Div("Peak Posting Day", className='kpi-label-v2'),
                     html.Div(id='time-peak-day-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=3),
+            ], className='kpi-card-v2 kpi-float'), width=True),
         ], style={'marginBottom': 30}),
         
         dbc.Row([

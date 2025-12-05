@@ -8,12 +8,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             const body = document.body;
 
             if (theme === 'dark') {
-                body.classList.remove('light-theme');
-                body.classList.add('dark-theme');
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
                 console.log('Applied dark theme');
             } else {
-                body.classList.remove('dark-theme');
-                body.classList.add('light-theme');
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
                 console.log('Applied light theme');
             }
 

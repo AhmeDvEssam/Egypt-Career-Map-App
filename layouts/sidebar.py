@@ -164,4 +164,4 @@ def create_sidebar():
             
         ], id='filter-page-2', style={'display': 'none'}),
         
-    ], id='filter-sidebar', className='')
+    ], id='filter-sidebar', className='sidebar')

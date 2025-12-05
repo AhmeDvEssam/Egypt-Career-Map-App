@@ -1,34 +1,92 @@
-/* Dark Mode Body and Container Backgrounds */
-.dark-theme,
-.dark-theme body,
-.dark-theme html,
-.dark-theme #theme-container,
-.dark-theme .content-container {
-    background: #1a1a1a !important;
+/* ============================================
+   DARK MODE THEME - PREMIUM & UNIFIED
+   ============================================ */
+
+/* 1. Main Backgrounds */
+body.dark-mode,
+body.dark-mode #theme-container,
+body.dark-mode .content-container {
+    background-color: #0a1929 !important;
+    /* Deep Navy Blue */
     color: #e8eaed !important;
 }
 
-/* Dark mode for all cards and containers */
-.dark-theme .glass-effect,
-.dark-theme .kpi-card-v2 {
-    background: #2a2a2a !important;
-    border-color: #3a3a3a !important;
+/* 2. Cards & Containers (Glass Effect) */
+body.dark-mode .kpi-card-v2,
+body.dark-mode .glass-effect,
+body.dark-mode .card {
+    background: rgba(17, 34, 64, 0.8) !important;
+    /* Semi-transparent Dark Blue */
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* 3. Typography */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .gradient-text {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .kpi-label-v2 {
+    color: #94a3b8 !important;
+    /* Slate 400 */
+}
+
+body.dark-mode .kpi-value-v2 {
+    color: #38bdf8 !important;
+    /* Sky 400 */
+}
+
+/* 4. Icons */
+body.dark-mode .kpi-icon-box {
+    background: rgba(56, 189, 248, 0.1) !important;
+}
+
+body.dark-mode .kpi-icon-box i {
+    color: #38bdf8 !important;
+}
+
+/* 5. Charts */
+body.dark-mode .js-plotly-plot .plotly,
+body.dark-mode .plotly {
+    background: transparent !important;
+}
+
+/* 6. Inputs & Dropdowns */
+body.dark-mode .Select-control {
+    background-color: #112240 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
     color: #e8eaed !important;
 }
 
-.dark-theme .kpi-label-v2,
-.dark-theme .kpi-value-v2,
-.dark-theme h1,
-.dark-theme h2,
-.dark-theme h3,
-.dark-theme h4,
-.dark-theme h5,
-.dark-theme h6 {
+body.dark-mode .Select-menu-outer {
+    background-color: #112240 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .Select-option {
+    background-color: #112240 !important;
     color: #e8eaed !important;
 }
 
-/* Dark mode for charts */
-.dark-theme .js-plotly-plot .plotly,
-.dark-theme .plotly {
-    background: #2a2a2a !important;
+body.dark-mode .Select-option.is-focused {
+    background-color: #1e3a8a !important;
+    /* Dark Blue Highlight */
+}
+
+body.dark-mode input.google-search-input {
+    background-color: #112240 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+body.dark-mode input.google-search-input::placeholder {
+    color: #64748b !important;
 }

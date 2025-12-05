@@ -22,7 +22,7 @@ def deep_analysis_layout():
                     html.Div("Total Jobs", className='kpi-label-v2'),
                     html.Div(id='deep-total-jobs-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=12//5),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -32,7 +32,7 @@ def deep_analysis_layout():
                     html.Div("Total Applicants", className='kpi-label-v2'),
                     html.Div(id='deep-total-applicants-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=12//5),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -42,7 +42,7 @@ def deep_analysis_layout():
                     html.Div("Avg Years of Exp", className='kpi-label-v2'),
                     html.Div(id='deep-avg-exp-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=12//5),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -52,7 +52,7 @@ def deep_analysis_layout():
                     html.Div("Avg Applicants", className='kpi-label-v2'),
                     html.Div(id='deep-avg-applicants-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=12//5),
+            ], className='kpi-card-v2 kpi-float'), width=True),
             
             dbc.Col(html.Div([
                 html.Div([
@@ -62,7 +62,7 @@ def deep_analysis_layout():
                     html.Div("Top Career Level", className='kpi-label-v2'),
                     html.Div(id='deep-top-career-kpi', className='kpi-value-v2')
                 ], className='kpi-content-box')
-            ], className='kpi-card-v2 kpi-float'), width=12//5),
+            ], className='kpi-card-v2 kpi-float'), width=True),
         ], style={'marginBottom': 30}),
         
         dbc.Row([
