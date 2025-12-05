@@ -103,12 +103,29 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
         month_bar_fig = px.bar(pd.DataFrame({'Month': [], 'count': []}), x='Month', y='count', title='Jobs by Month')
     
     # Applicants trend
+    # Applicants trend
     if 'applicants' in filtered_df.columns and not filtered_df['Month'].dropna().empty:
+        applicants_trend = filtered_df.groupby('Month')['applicants'].mean().reset_index()
+        applicants_trend_fig = px.line(applicants_trend, x='Month', y='applicants', title='Average Applicants Trend')
+    else:
+        applicants_trend_fig = px.line(pd.DataFrame({'Month': [], 'applicants': []}), x='Month', y='applicants', title='Average Applicants Trend')
+    
+    # Style figures with dark theme
+    font_color = '#ffffff' if theme == 'dark' else '#001F3F'
+    
+    for fig in [month_day_fig, month_bar_fig, applicants_trend_fig]:
+        fig.update_layout(
+            dragmode=False,
+            template='plotly',
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color=font_color, family='Inter'),
+            title_font=dict(size=51, color=font_color),
             xaxis_title=None,
             yaxis_title=None,
             coloraxis_showscale=False,
-            xaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22)),
-            yaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22)),
+            xaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22, color=font_color)),
+            yaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22, color=font_color)),
             hoverlabel=dict(
                 bgcolor='#001F3F',
                 font_size=13,
@@ -118,10 +135,10 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
         )
         if fig == month_bar_fig:
              fig.update_layout(
-                 xaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22)),
+                 xaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22, color=font_color)),
                  yaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=False)
              )
-             fig.update_traces(textposition='outside', textfont=dict(size=22, color='#001F3F'))
+             fig.update_traces(textposition='outside', textfont=dict(size=22, color=font_color))
         
         if fig == month_day_fig:
             fig.update_traces(hovertemplate='<span style="color:white; font-family:Inter;"><b>%{x}</b><br>Day: %{fullData.name}<br>Count: %{y}</span><extra></extra>')

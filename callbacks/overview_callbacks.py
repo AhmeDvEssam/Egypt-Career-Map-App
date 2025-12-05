@@ -104,7 +104,10 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     vc = s.value_counts().reset_index()
     vc.columns = [col, 'count']
     employment_type_fig = px.bar(vc, x='count', y=col, title='Jobs by Employment Type', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
-    employment_type_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+    employment_type_fig.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'title': None},
+        xaxis={'showgrid': False}
+    )
     apply_visual_highlighting(employment_type_fig, vc[col].tolist(), employment_types, is_pie=False)
     apply_chart_styling(employment_type_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
     
@@ -124,7 +127,10 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     vc = s.value_counts().reset_index()
     vc.columns = [col, 'count']
     career_level_fig = px.bar(vc, x='count', y=col, title='Jobs by Career Level', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
-    career_level_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+    career_level_fig.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'title': None},
+        xaxis={'showgrid': False}
+    )
     apply_visual_highlighting(career_level_fig, vc[col].tolist(), career_levels, is_pie=False)
     apply_chart_styling(career_level_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
 
@@ -134,7 +140,10 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     vc = s.value_counts().head(10).reset_index()
     vc.columns = [col, 'count']
     top_categories_fig = px.bar(vc, x='count', y=col, title='Top 10 Categories', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
-    top_categories_fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+    top_categories_fig.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'title': None},
+        xaxis={'showgrid': False}
+    )
     apply_visual_highlighting(top_categories_fig, vc[col].tolist(), categories, is_pie=False)
     apply_chart_styling(top_categories_fig, is_horizontal_bar=True, add_margin=True, theme=theme)  # ✅ Pass theme
     

@@ -12,7 +12,6 @@ from utils import get_color_scale, create_empty_chart, apply_large_fonts_to_char
      Output('skills-cloud', 'figure'),
      Output('experience-chart', 'figure'),
      Output('applicants-chart', 'figure'),
-     Output('decomposition-tree', 'figure'),
      Output('deep-total-jobs-kpi', 'children'),
      Output('deep-total-applicants-kpi', 'children'),
      Output('deep-avg-exp-kpi', 'children'),
@@ -76,7 +75,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
              filtered_df = filtered_df[(filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)]
     if months and 'posted' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['posted'].dt.month.isin(months)]
-
+    
     # Apply search text filter
     if search_text and search_text.strip():
         from utils import filter_dataframe_by_search
@@ -85,28 +84,58 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     deep_blue_scale = get_color_scale(theme)
     has_applicants = 'applicants' in filtered_df.columns
     
+    # Helper to get mode safely
+    def get_mode(series):
+        m = series.mode()
+        return m[0] if not m.empty else 'N/A'
+
     # CHART 1: Company Performance
     if 'Company' in filtered_df.columns and not filtered_df.empty:
+        # Columns to aggregate
+        agg_dict = {'Job Title': 'count'}
         if has_applicants:
-            company_stats = filtered_df.groupby('Company').agg({
-                'applicants': 'sum',
-                'Job Title': 'count'
-            }).reset_index()
-            company_stats.columns = ['Company', 'primary_metric', 'postings']
+            agg_dict['applicants'] = 'sum'
+        if 'Year Of Exp_Avg' in filtered_df.columns:
+            agg_dict['Year Of Exp_Avg'] = 'mean'
+        
+        # Group by Company
+        company_stats = filtered_df.groupby('Company').agg(agg_dict).reset_index()
+        
+        # Get categorical modes separately (groupby + apply is slow, but acceptable for filtered data)
+        # Optimizing: Just take the top companies first, THEN get their detailed info to save time?
+        # But we need to sort to find top companies first.
+        
+        if has_applicants:
+            company_stats = company_stats.rename(columns={'applicants': 'primary_metric'})
             metric_name = 'Total Applicants'
             title = 'Top Companies by Total Applicants'
         else:
-            company_stats = filtered_df['Company'].value_counts().reset_index()
-            company_stats.columns = ['Company', 'primary_metric']
-            company_stats['postings'] = company_stats['primary_metric']
+            company_stats['primary_metric'] = company_stats['Job Title']
             metric_name = 'Job Postings'
             title = 'Top Companies by Job Postings'
             
         top_companies = company_stats.nlargest(10, 'primary_metric').sort_values('primary_metric', ascending=True)
         
+        # Enriched Data for Top 10 Only (Performance Optimization)
+        enriched_data = []
+        for company in top_companies['Company']:
+            comp_df = filtered_df[filtered_df['Company'] == company]
+            enriched_data.append({
+                'Company': company,
+                'Work Mode': get_mode(comp_df['Work Mode']) if 'Work Mode' in comp_df else 'N/A',
+                'Employment Type': get_mode(comp_df['Employment Type']) if 'Employment Type' in comp_df else 'N/A',
+                'Career Level': get_mode(comp_df['Career Level']) if 'Career Level' in comp_df else 'N/A',
+                'Avg Exp': round(comp_df['Year Of Exp_Avg'].mean(), 1) if 'Year Of Exp_Avg' in comp_df else 0
+            })
+        
+        enriched_df = pd.DataFrame(enriched_data)
+        if not enriched_df.empty:
+            top_companies = top_companies.merge(enriched_df, on='Company')
+
         if not top_companies.empty:
             company_performance_fig = px.bar(
-                top_companies, x='primary_metric', y='Company', title=title, orientation='h', color='primary_metric', color_continuous_scale=deep_blue_scale
+                top_companies, x='primary_metric', y='Company', title=title, orientation='h', 
+                color='primary_metric', color_continuous_scale=deep_blue_scale
             )
             company_performance_fig.update_layout(
                 height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
@@ -115,10 +144,24 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
                 dragmode=False, title_font=dict(size=24)
             )
+            
+            # Prepare Custom Data
+            # Stack columns: [Work Mode, Emp Type, Career Level, Avg Exp, Job Title (count)]
+            custom_data = top_companies[['Work Mode', 'Employment Type', 'Career Level', 'Avg Exp', 'Job Title']].values
+            
             company_performance_fig.update_traces(
                 texttemplate='%{x:,.0f}', textposition='outside', textfont=dict(size=17, color='#001F3F'),
-                hovertemplate='<b>%{y}</b><br>' + ('Total Applicants: %{x:,.0f}<br>' if has_applicants else 'Job Postings: %{x:,.0f}<br>') + '<extra></extra>',
-                hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
+                hovertemplate=(
+                    '<span style="font-size: 16px; font-weight: bold;">%{y}</span><br><br>' +
+                    f'{metric_name}: <b>%{{x:,.0f}}</b><br>' +
+                    'Jobs: <b>%{customdata[4]}</b><br>' +
+                    'Avg Exp: <b>%{customdata[3]} yrs</b><br>' +
+                    'Level: <b>%{customdata[2]}</b><br>' +
+                    'Type: <b>%{customdata[1]}</b><br>' +
+                    'Mode: <b>%{customdata[0]}</b><extra></extra>'
+                ),
+                customdata=custom_data,
+                hoverlabel=dict(bgcolor='#001F3F', font_size=16, font_family='Inter', font_color='white', align='left')
             )
         else:
             company_performance_fig = create_empty_chart(title, theme=theme)
@@ -221,7 +264,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 edu_counts, x='count', y='Education Level', title='Education Requirements', orientation='h', color='count', color_continuous_scale=deep_blue_scale
             )
             education_distribution_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='white', paper_bgcolor='white',
+                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
                 xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
                 yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
@@ -257,7 +300,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 top_intensity, x='avg_applicants', y='Company', title='Most Competitive Companies (Avg Applicants per Posting)', orientation='h', color='avg_applicants', color_continuous_scale=deep_blue_scale
             )
             hiring_intensity_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='white', paper_bgcolor='white',
+                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
                 xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
                 yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
@@ -278,9 +321,6 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     if not isinstance(hiring_intensity_fig.data, tuple) or len(hiring_intensity_fig.data) > 0:
         hiring_intensity_fig = apply_large_fonts_to_chart(hiring_intensity_fig, theme=theme)
     
-    # DECOMPOSITION TREE (Disabled)
-    decomposition_tree_fig = create_empty_chart('Job Market Decomposition Tree (Temporarily Disabled)', theme=theme)
-    
     # KPIs
     total_jobs = len(filtered_df)
     total_applicants = int(filtered_df['applicants'].sum()) if 'applicants' in filtered_df.columns and filtered_df['applicants'].notna().any() else 0
@@ -290,7 +330,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     
     from utils import format_kpi_value
 
-    return (company_performance_fig, education_distribution_fig, career_level_fig, experience_buckets_fig, hiring_intensity_fig, decomposition_tree_fig,
+    return (company_performance_fig, education_distribution_fig, career_level_fig, experience_buckets_fig, hiring_intensity_fig,
             format_kpi_value(total_jobs, theme), 
             format_kpi_value(total_applicants, theme), 
             format_kpi_value(avg_exp, theme), 

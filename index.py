@@ -60,7 +60,7 @@ app.layout = html.Div([
                             className='theme-toggle-btn'
                         )
                     ),
-                ], className="ms-auto", navbar=True),
+                ], className="ms-auto", style={'marginRight': '40px'}, navbar=True),
             ], fluid=True),
             color="primary",
             dark=True,

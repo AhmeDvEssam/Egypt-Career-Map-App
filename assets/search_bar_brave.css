@@ -1,0 +1,97 @@
+/* Google-style Search Bar - Brave Style (White & Pill) */
+
+/* Container */
+.search-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-right: 15px;
+}
+
+/* Main Search Bar Pill */
+.google-search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff !important;
+    border: 1px solid #dfe1e5 !important;
+    border-radius: 50px !important;
+    /* Pill Shape */
+    padding: 8px 20px;
+    height: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin-left: 20px;
+    /* Space from logo/text */
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1000;
+}
+
+/* Compact State */
+.google-search-bar-compact {
+    width: 250px !important;
+    /* Reduced from 450px */
+    min-width: 200px;
+}
+
+/* Hover/Focus Expansion */
+.google-search-bar-compact:hover,
+.google-search-bar-compact:focus-within {
+    width: 400px !important;
+    /* Reduced from 600px */
+    max-width: 60vw !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Input Field */
+.google-search-input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 0 10px;
+    color: #202124 !important;
+    /* Dark Text */
+    background-color: transparent !important;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+}
+
+.google-search-input::placeholder {
+    color: #5f6368 !important;
+    opacity: 0.8;
+}
+
+/* Search Icon */
+.search-icon {
+    color: #5f6368 !important;
+    font-size: 20px;
+    margin-right: 10px;
+    transition: color 0.3s ease;
+}
+
+.google-search-bar:focus-within .search-icon {
+    color: #0066CC !important;
+}
+
+/* DARK MODE OVERRIDES - Enforce White Pill Style */
+/* These rules ensure the bar remains white even when body is dark */
+
+body.dark-mode .google-search-bar {
+    background-color: #ffffff !important;
+    border-color: #dfe1e5 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .google-search-input {
+    color: #202124 !important;
+    /* Force Dark Text */
+}
+
+body.dark-mode .google-search-input::placeholder {
+    color: #5f6368 !important;
+}
+
+body.dark-mode .search-icon {
+    color: #5f6368 !important;
+}

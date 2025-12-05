@@ -104,13 +104,10 @@ def toggle_theme(n_clicks, current_theme):
     button_content = [html.Span("🌙", className='icon'), " Dark Mode"]
     return current_theme or 'light', button_content
 
-# Server-side callback to apply theme CSS classes
-@app.callback(
-    Output('theme-container', 'className'),
+# Client-side callback to apply theme CSS classes to BODY
+# This invokes assets/theme_switcher.js
+app.clientside_callback(
+    dash.ClientsideFunction(namespace='clientside', function_name='apply_theme'),
+    Output('theme-container', 'data-theme'), # Dummy output to satisfy Dash
     Input('theme-store', 'data')
 )
-def apply_theme_class(theme):
-    """Apply theme class to container"""
-    if theme == 'dark':
-        return 'dark-theme'
-    return 'light-theme'

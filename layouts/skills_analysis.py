@@ -50,12 +50,26 @@ def skills_page_layout():
         
         # Main visualizations
         dbc.Row([
-            dbc.Col(dcc.Loading(dcc.Graph(id='skills-wordcloud', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), width=8),
-            dbc.Col(dcc.Loading(dcc.Graph(id='skills-category-breakdown', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), width=4),
+            dbc.Col(dcc.Loading(dcc.Graph(id='skills-wordcloud', style={'height': '600px'}, config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), width=8),
+            dbc.Col([
+                html.Div(
+                    dcc.Loading(dcc.Graph(id='skills-category-breakdown', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})),
+                    style={'height': '600px', 'overflowY': 'auto', 'overflowX': 'hidden'}
+                )
+            ], width=4),
         ], style={'marginBottom': 20}),
         
         dbc.Row([
             dbc.Col(dcc.Loading(dcc.Graph(id='top-skills-bar', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), width=6),
-            dbc.Col(dcc.Loading(dcc.Graph(id='skills-trend', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), width=6),
+            dbc.Col([
+                html.Label("Select Skills to Compare (Trend):", className="text-white mb-2"),
+                dcc.Dropdown(
+                    id='skill-trend-selector',
+                    multi=True,
+                    placeholder="Select skills to visualize trend...",
+                    style={'color': 'black', 'marginBottom': '10px'}
+                ),
+                dcc.Loading(dcc.Graph(id='skills-trend', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]}))
+            ], width=6),
         ], style={'marginBottom': 20}),
     ])

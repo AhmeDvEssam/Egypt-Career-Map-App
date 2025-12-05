@@ -79,7 +79,4 @@ def deep_analysis_layout():
             dbc.Col(dcc.Graph(id='applicants-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]}), width=12),
         ], style={'marginBottom': 20}),
         
-        dbc.Row([
-            dbc.Col(dcc.Graph(id='decomposition-tree', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]}), width=12),
-        ])
     ])
