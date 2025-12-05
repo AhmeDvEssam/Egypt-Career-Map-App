@@ -1,4 +1,31 @@
+from dash import html
 import plotly.graph_objects as go
+
+def format_kpi_value(value, theme, is_pct=False):
+    """
+    Format KPI value with inline styles to guarantee visibility.
+    Bypasses CSS inheritance issues.
+    Theme: 'dark' -> White text
+    Theme: 'light' -> Navy Blue text
+    """
+    color = '#ffffff' if theme == 'dark' else '#001F3F'
+    style = {'color': color, 'fontWeight': 'bold'}
+    
+    # Format number if it's a number
+    if isinstance(value, (int, float)):
+        if is_pct:
+            formatted = f"{value:.1f}%"
+        else:
+            # Check if int or float
+            if isinstance(value, int):
+                formatted = f"{value:,}"
+            else:
+                formatted = f"{value:.1f}"
+    else:
+        formatted = str(value)
+        
+    return html.Span(formatted, style=style)
+
 import plotly.express as px
 import pandas as pd
 from data_loader import skills_df

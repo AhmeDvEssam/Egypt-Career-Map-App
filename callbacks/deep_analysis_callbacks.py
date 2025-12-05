@@ -288,5 +288,11 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     avg_applicants = filtered_df['applicants'].mean() if 'applicants' in filtered_df.columns and filtered_df['applicants'].notna().any() else 0
     top_career = filtered_df['Career Level'].value_counts().index[0] if 'Career Level' in filtered_df.columns and not filtered_df.empty else 'N/A'
     
+    from utils import format_kpi_value
+
     return (company_performance_fig, education_distribution_fig, career_level_fig, experience_buckets_fig, hiring_intensity_fig, decomposition_tree_fig,
-            f"{total_jobs:,}", f"{total_applicants:,}", f"{avg_exp:.1f} yrs", f"{avg_applicants:.0f}", top_career)
+            format_kpi_value(total_jobs, theme), 
+            format_kpi_value(total_applicants, theme), 
+            format_kpi_value(avg_exp, theme), 
+            format_kpi_value(avg_applicants, theme), 
+            format_kpi_value(top_career, theme))

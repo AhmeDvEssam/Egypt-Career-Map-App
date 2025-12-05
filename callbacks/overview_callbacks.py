@@ -1,4 +1,4 @@
-from dash import Input, Output, State
+from dash import Input, Output, State, html
 import plotly.express as px
 import pandas as pd
 from app_instance import app
@@ -144,4 +144,18 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme=theme)
     top_categories_fig = apply_large_fonts_to_chart(top_categories_fig, theme=theme)
     
-    return f"{total_jobs:,}", f"{total_companies:,}", f"{total_categories:,}", f"{avg_applicants:.1f}", remote_hybrid_pct, latest_date, employment_type_fig, work_mode_fig, career_level_fig, top_categories_fig
+    from utils import format_kpi_value
+
+    # 🎨 INLINE STYLE INJECTION via Helper
+    return (
+        format_kpi_value(total_jobs, theme),
+        format_kpi_value(total_companies, theme),
+        format_kpi_value(total_categories, theme),
+        format_kpi_value(avg_applicants, theme),
+        format_kpi_value(remote_hybrid_pct, theme),
+        format_kpi_value(latest_date, theme),
+        employment_type_fig,
+        work_mode_fig,
+        career_level_fig,
+        top_categories_fig
+    )
