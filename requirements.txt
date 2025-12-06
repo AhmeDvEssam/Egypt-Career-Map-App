@@ -7,3 +7,4 @@ folium
 requests
 numpy
 waitress
+flask-caching
