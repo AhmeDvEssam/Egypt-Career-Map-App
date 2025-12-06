@@ -144,6 +144,16 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         # Filter bounds
         map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
 
+        # PERFORMANCE: Limit markers to 1000 max (prioritize recent + high applicants)
+        if len(map_df) > 1000:
+            # Sort by posted date (recent first) and applicants (high first)
+            if 'posted' in map_df.columns and 'applicants' in map_df.columns:
+                map_df = map_df.sort_values(['posted', 'applicants'], ascending=[False, False]).head(1000)
+            elif 'posted' in map_df.columns:
+                map_df = map_df.sort_values('posted', ascending=False).head(1000)
+            else:
+                map_df = map_df.head(1000)
+
         if not map_df.empty:
             map_data = []
             for _, row in map_df.iterrows():

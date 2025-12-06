@@ -215,11 +215,35 @@ body.sidebar-collapsed .content-container {
 @media (max-width: 992px) {
     .sidebar {
         transform: translateX(-100%);
-        width: 280px;
+        width: 320px;
+        /* Wider for better mobile UX */
+        z-index: 2000;
+        /* Above everything */
+        background: white;
+        /* Ensure solid background */
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
+        /* Stronger shadow */
     }
 
     .sidebar.active {
-        transform: translateX(0);
+        transform: translateX(0) !important;
+    }
+
+    /* Ensure content shifts on mobile when sidebar opens */
+    .content-container {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* Mobile navbar adjustments */
+    .custom-navbar {
+        padding: 0 15px;
+    }
+
+    /* Sidebar toggle button - ensure visibility */
+    .sidebar-toggle-btn {
+        display: block !important;
+        z-index: 1050;
     }
 }
 
