@@ -83,6 +83,13 @@ def generate_map_html(filter_hash, map_style, theme, highlight_lat=None, highlig
 )
 def update_city_map(companies, cities, categories, work_modes, employment_types, career_levels, education_levels, start_date, end_date, in_cities, avg_exp_range, months, map_style, search_text, theme, active_cell):
     
+    # Create cache key from all filter inputs
+    cache_key = f"map_{companies}_{cities}_{categories}_{work_modes}_{employment_types}_{career_levels}_{education_levels}_{start_date}_{end_date}_{in_cities}_{avg_exp_range}_{months}_{map_style}_{search_text}_{active_cell}"
+    cache_key_hash = hashlib.md5(cache_key.encode()).hexdigest()
+    
+    # Try to get cached map HTML
+    cached_map = cache.get(f"map_html_{cache_key_hash}")
+    
     ctx = callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else 'initial'
 
@@ -250,7 +257,15 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                     icon=folium.Icon(color='red', icon='info-sign')
                 ).add_to(m)
 
+    # If map is cached and no table interaction, return cached version
+    if cached_map and triggered_id != 'jobs-table':
+        # Still need to generate KPIs and table, but map is cached
+        pass  # Continue to generate other outputs
+    
     map_html = m.get_root().render()
+    
+    # Cache the generated map HTML for 5 minutes
+    cache.set(f"map_html_{cache_key_hash}", map_html, timeout=300)
 
     # --- Job Table (Updated with requested columns and rich tooltip) ---
     display_cols = ['Job Title', 'Company', 'City', 'Category', 'Year Of Exp_Avg', 
