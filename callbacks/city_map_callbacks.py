@@ -179,16 +179,17 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                 return marker;
             }
             """
-            # Use optimized clustering settings
+            # Use optimized clustering settings - ALWAYS cluster for performance
             FastMarkerCluster(
                 data=map_data, 
                 callback=callback, 
                 name='Jobs',
                 options={
-                    'disableClusteringAtZoom': 15,
                     'spiderfyOnMaxZoom': True,
                     'showCoverageOnHover': False,
-                    'maxClusterRadius': 80
+                    'maxClusterRadius': 120,  # Larger radius = more aggressive clustering
+                    'animate': True,
+                    'animateAddingMarkers': False  # Faster initial load
                 }
             ).add_to(m)
             
