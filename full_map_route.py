@@ -11,10 +11,23 @@ import pandas as pd
 
 @server.route('/full-map')
 def full_map():
-    """Serve full Folium map as standalone HTML"""
+    """Serve full Folium map as standalone HTML with optional filters"""
+    from flask import request
     
-    # Check cache first
-    cached_full_map = cache.get('full_map_html')
+    # Get filter parameters from URL
+    cities = request.args.getlist('city')
+    companies = request.args.getlist('company')
+    categories = request.args.getlist('category')
+    work_modes = request.args.getlist('work_mode')
+    search = request.args.get('search', '')
+    
+    # Create cache key based on filters
+    import hashlib
+    filter_key = f"{cities}_{companies}_{categories}_{work_modes}_{search}"
+    cache_key = hashlib.md5(filter_key.encode()).hexdigest()
+    
+    # Check cache
+    cached_full_map = cache.get(f'full_map_{cache_key}')
     if cached_full_map:
         return Response(cached_full_map, mimetype='text/html')
     
@@ -28,9 +41,46 @@ def full_map():
     )
     
     # Get all jobs with coordinates
-    map_df = df[['Job Title', 'Company', 'City', 'In_City', 'Latitude', 'Longitude', 'Link']].copy()
+    map_df = df[['Job Title', 'Company', 'City', 'Category', 'Work Mode', 'In_City', 'Latitude', 'Longitude', 'Link']].copy()
     map_df = map_df.dropna(subset=['Latitude', 'Longitude'])
     map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
+    
+    # Apply filters
+    if cities:
+        map_df = map_df[map_df['City'].isin(cities)]
+    if companies:
+        map_df = map_df[map_df['Company'].isin(companies)]
+    if categories:
+        map_df = map_df[map_df['Category'].isin(categories)]
+    if work_modes:
+        map_df = map_df[map_df['Work Mode'].isin(work_modes)]
+    if search:
+        # Simple search in Job Title, Company, City
+        search_lower = search.lower()
+        map_df = map_df[
+            map_df['Job Title'].str.lower().str.contains(search_lower, na=False) |
+            map_df['Company'].str.lower().str.contains(search_lower, na=False) |
+            map_df['City'].str.lower().str.contains(search_lower, na=False)
+        ]
+    
+    # Add filter info to map
+    if cities or companies or categories or work_modes or search:
+        filter_text = f"<b>Filters Applied:</b><br>"
+        if cities: filter_text += f"Cities: {', '.join(cities)}<br>"
+        if companies: filter_text += f"Companies: {', '.join(companies[:3])}{'...' if len(companies) > 3 else ''}<br>"
+        if categories: filter_text += f"Categories: {', '.join(categories[:3])}{'...' if len(categories) > 3 else ''}<br>"
+        if work_modes: filter_text += f"Work Modes: {', '.join(work_modes)}<br>"
+        if search: filter_text += f"Search: {search}<br>"
+        filter_text += f"<b>Total Jobs: {len(map_df)}</b>"
+        
+        folium.Marker(
+            location=[31.5, 34],  # Top right corner
+            icon=folium.DivIcon(html=f"""
+                <div style="background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 12px;">
+                    {filter_text}
+                </div>
+            """)
+        ).add_to(m)
     
     # Prepare markers
     map_data = []

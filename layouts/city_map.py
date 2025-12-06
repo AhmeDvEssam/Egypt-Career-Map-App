@@ -86,12 +86,12 @@ def city_map_layout():
             )
         ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px'}),
         
-        # Full Map Button
+        # Full Map Button - will be updated by callback with filters
         html.Div([
             html.A(
                 html.Button([
                     html.I(className='fa-solid fa-map', style={'marginRight': '8px'}),
-                    'Open Full Interactive Map'
+                    'Open Full Interactive Map (with current filters)'
                 ], className='btn btn-primary', style={
                     'padding': '12px 24px',
                     'fontSize': '16px',
@@ -99,6 +99,7 @@ def city_map_layout():
                     'borderRadius': '8px',
                     'boxShadow': '0 4px 12px rgba(0,123,255,0.3)'
                 }),
+                id='full-map-link',
                 href='/full-map',
                 target='_blank'
             )

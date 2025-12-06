@@ -63,7 +63,8 @@ def generate_map_html(filter_hash, map_style, theme, highlight_lat=None, highlig
      Output('city-avg-jobs-kpi', 'children'),
      Output('city-bar-chart', 'figure'),
      Output('city-map', 'srcDoc'),
-     Output('job-table-container', 'children')],
+     Output('job-table-container', 'children'),
+     Output('full-map-link', 'href')],  # Add link update
     [Input('sidebar-company-filter', 'value'),
      Input('sidebar-city-filter', 'value'),
      Input('sidebar-category-filter', 'value'),
@@ -352,6 +353,201 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         style_cell=style_cell,
         style_data_conditional=style_data_conditional,
         tooltip_data=tooltip_data,
+         if not city_data.empty and 'Latitude' in city_data.columns and 'Longitude' in city_data.columns:
+             city_coords_df = city_data[['Latitude', 'Longitude']].dropna()
+             if not city_coords_df.empty:
+                 city_coords = city_coords_df.iloc[0]
+                 center_location = [city_coords['Latitude'], city_coords['Longitude']]
+                 zoom_level = 11
+
+    # --- Generate Folium Map ---
+    # Map Tiles Logic
+    if map_style == 'dark':
+        tiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    elif map_style == 'satellite':
+        tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        attr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    elif map_style == 'positron':
+        tiles = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    elif map_style == 'osm':
+        tiles = 'OpenStreetMap'
+        attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    else:
+        tiles = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+        attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+    m = folium.Map(
+        location=center_location, 
+        zoom_start=zoom_level,
+        tiles=tiles,
+        attr=attr,
+        zoom_control=True,
+        scrollWheelZoom=True
+    )
+    
+    # Only fit bounds if we are NOT zoomed in on a specific job
+    if highlight_row is None and not (cities and len(cities) > 0):
+        m.fit_bounds([[22, 25], [32, 37]])
+
+    map_df = filtered_df.copy()
+    if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
+        map_df = map_df.dropna(subset=['Latitude', 'Longitude'])
+        # Filter bounds
+        map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
+
+        if not map_df.empty:
+            map_data = []
+            for _, row in map_df.iterrows():
+                job_title = str(row['Job Title']).replace("'", "")
+                company = str(row['Company']).replace("'", "")
+                city = str(row['City'])
+                in_city = str(row['In_City']) if pd.notna(row.get('In_City')) else ""
+                job_link = str(row['Link']) if pd.notna(row['Link']) else "#"
+                
+                # Rich tooltip with In_City and CTA
+                tooltip_html = f"""
+                <div style="font-family: Arial, sans-serif; min-width: 180px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #000; margin-bottom: 3px;">{job_title[:60]}</div>
+                    <div style="font-size: 13px; color: #333; margin-bottom: 2px;">{company[:40]}</div>
+                    <div style="font-size: 12px; color: #0066CC; margin-bottom: 6px;">{city}{f' - {in_city}' if in_city else ''}</div>
+                    <div style="font-size: 11px; color: #0066CC; font-weight: bold; border-top: 1px solid #ddd; padding-top: 4px;">👉 Click to Visit Wuzzuf</div>
+                </div>
+                """
+                map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_html])
+            
+            # JS Callback for Clusters - Optimized
+            callback = """
+            function (row) {
+                var marker = L.marker(new L.LatLng(row[0], row[1]));
+                marker.bindTooltip(row[3], {
+                    direction: 'top',
+                    className: 'custom-map-tooltip',
+                    opacity: 1,
+                    offset: [0, -10]
+                });
+                marker.on('click', function() {
+                    window.open(row[2], '_blank');
+                });
+                return marker;
+            }
+            """
+            # Use optimized clustering settings - ALWAYS cluster for performance
+            FastMarkerCluster(
+                data=map_data, 
+                callback=callback, 
+                name='Jobs',
+                options={
+                    'spiderfyOnMaxZoom': True,
+                    'showCoverageOnHover': False,
+                    'maxClusterRadius': 120,  # Larger radius = more aggressive clustering
+                    'animate': True,
+                    'animateAddingMarkers': False  # Faster initial load
+                }
+            ).add_to(m)
+            
+            # If a row is highlighted, add a special marker in Red
+            if highlight_row is not None:
+                # Add a functional popup + click behavior (via popup for simplicity in Python)
+                target_link = str(highlight_row['Link']) if pd.notna(highlight_row['Link']) else "#"
+                popup_html = f'<a href="{target_link}" target="_blank" style="font-weight:bold; font-size:14px; color:#0066CC;">👉 Click to Visit Job Page</a>'
+                
+                folium.Marker(
+                    location=[highlight_row['Latitude'], highlight_row['Longitude']],
+                    tooltip="Selected Job: " + str(highlight_row['Job Title']),
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color='red', icon='info-sign')
+                ).add_to(m)
+
+    # If map is cached and no table interaction, return cached version
+    if cached_map and triggered_id != 'jobs-table':
+        # Still need to generate KPIs and table, but map is cached
+        pass  # Continue to generate other outputs
+    
+    map_html = m.get_root().render()
+    
+    # Cache the generated map HTML for 5 minutes
+    cache.set(f"map_html_{cache_key_hash}", map_html, timeout=300)
+
+    # --- Job Table (Updated with requested columns and rich tooltip) ---
+    display_cols = ['Job Title', 'Company', 'City', 'Category', 'Year Of Exp_Avg', 
+                   'Work Mode', 'Employment Type', 'Career Level', 'Skills', 'applicants', 'posted']
+    final_cols = [c for c in display_cols if c in filtered_df.columns]
+    rename_map = {'Year Of Exp_Avg': 'Exp (Yrs)', 'posted': 'Date Posted'}
+    table_df = filtered_df[final_cols].rename(columns=rename_map).copy()
+
+    # Ensure Title is a Link (Markdown) for "Click to Visit" behavior
+    if 'Link' in filtered_df.columns and 'Job Title' in table_df.columns:
+         # Need original Link column to construct markdown
+         # We already filtered table_df, so map by index or merge?
+         # filtered_df matches table_df indexwise if we didn't drop rows. We copied.
+         # Safer to rely on the fact we haven't reordered table_df relative to filtered_df yet.
+         links = filtered_df['Link'].fillna('#')
+         titles = table_df['Job Title']
+         table_df['Job Title'] = [f"[{t}]({l})" for t, l in zip(titles, links)]
+
+    if 'Date Posted' in table_df.columns:
+        table_df['Date Posted'] = pd.to_datetime(table_df['Date Posted'], errors='coerce').dt.strftime('%b %d')
+
+    tooltip_data = []
+    for i, row in table_df.iterrows():
+        # Rich Tooltip Content with all details
+        tt = f"""
+**{row.get('Job Title', 'N/A').split(']')[0][1:] if '[' in str(row.get('Job Title', '')) else row.get('Job Title', 'N/A')}**  
+*{row.get('Company', 'N/A')}*  
+📍 {row.get('City', 'N/A')} | 💼 {row.get('Work Mode', 'N/A')}  
+🎓 {row.get('Career Level', 'N/A')} | 🕒 {row.get('Employment Type', 'N/A')}  
+
+**Skills:**  
+{str(row.get('Skills', 'No skills listed'))[:200]}{'...' if len(str(row.get('Skills', ''))) > 200 else ''}
+
+👉 **Click Title to Visit Link on Wuzzuf**
+        """
+        tooltip_data.append({c: {'value': tt, 'type': 'markdown'} for c in table_df.columns})
+
+    style_header = {
+        'backgroundColor': '#0f172a', 
+        'color': '#f8fafc', 
+        'fontWeight': 'bold', 
+        'border': '1px solid #334155'
+    }
+    style_cell = {
+        'backgroundColor': '#1e293b' if theme == 'dark' else '#ffffff',
+        'color': '#e2e8f0' if theme == 'dark' else '#1e293b',
+        'border': '1px solid #334155' if theme == 'dark' else '1px solid #e2e8f0',
+        'padding': '12px',
+        'textAlign': 'left',
+        'fontFamily': 'Inter',
+        'maxWidth': '200px',
+        'overflow': 'hidden',
+        'textOverflow': 'ellipsis',
+    }
+    style_data_conditional = [
+        {'if': {'state': 'active'}, 'backgroundColor': 'rgba(56, 189, 248, 0.2)', 'border': '1px solid #38bdf8'},
+        {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(56, 189, 248, 0.3)', 'border': '1px solid #38bdf8'},
+        {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgba(255, 255, 255, 0.03)' if theme == 'dark' else '#f8fafc'}
+    ]
+
+    # Tooltip Styling (Large width, visible text)
+    css = [
+        {'selector': '.dash-spreadsheet td:hover', 'rule': 'color: #0066CC !important; font-weight: bold; cursor: pointer;'},
+        {'selector': '.dash-table-tooltip', 'rule': 'background-color: #1e293b !important; color: white !important; font-size: 14px; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); width: 400px !important; max-width: 400px !important; min-width: 400px !important; white-space: pre-wrap !important;'},
+        {'selector': '.dash-tooltip', 'rule': 'border: none !important;'}
+    ]
+
+    table_component = dash_table.DataTable(
+        id='jobs-table',
+        data=table_df.to_dict('records'),
+        columns=[
+            {'name': i, 'id': i, 'presentation': 'markdown'} if i == 'Job Title' else {'name': i, 'id': i}
+            for i in table_df.columns
+        ],
+        style_table={'overflowX': 'auto', 'minWidth': '100%'}, # Ensure scrollbar appears
+        style_header=style_header,
+        style_cell=style_cell,
+        style_data_conditional=style_data_conditional,
+        tooltip_data=tooltip_data,
         tooltip_duration=None,
         css=css,
         page_size=15,
@@ -360,5 +556,21 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         filter_action='native',
         row_selectable='single'
     )
-
-    return f"{total_jobs_city:,}", top_city, f"{avg_jobs_per_city:.1f}", city_bar_fig, map_html, table_component
+    
+    # Build full-map URL with current filters
+    from urllib.parse import urlencode
+    params = {}
+    if cities:
+        params['city'] = cities
+    if companies:
+        params['company'] = companies
+    if categories:
+        params['category'] = categories
+    if work_modes:
+        params['work_mode'] = work_modes
+    if search_text:
+        params['search'] = search_text
+    
+    full_map_url = f"/full-map?{urlencode(params, doseq=True)}" if params else "/full-map"
+    
+    return f"{total_jobs_city:,}", top_city, f"{avg_jobs_per_city:.1f}", city_bar_fig, map_html, table_component, full_map_url
