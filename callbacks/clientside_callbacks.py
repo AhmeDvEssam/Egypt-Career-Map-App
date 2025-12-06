@@ -150,3 +150,56 @@ app.clientside_callback(
     State('sidebar-education-filter', 'value'),
     prevent_initial_call=True
 )
+
+# Sidebar Toggle for Mobile
+app.clientside_callback(
+    """
+    function(n_clicks) {
+        if (!n_clicks) {
+            return window.dash_clientside.no_update;
+        }
+        
+        const sidebar = document.querySelector('.sidebar');
+        const backdrop = document.querySelector('.sidebar-backdrop');
+        
+        if (sidebar) {
+            sidebar.classList.toggle('active');
+        }
+        if (backdrop) {
+            backdrop.classList.toggle('active');
+        }
+        
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output('sidebar-toggle-btn', 'n_clicks', allow_duplicate=True),
+    Input('sidebar-toggle-btn', 'n_clicks'),
+    prevent_initial_call=True
+)
+
+# Close sidebar when backdrop is clicked
+app.clientside_callback(
+    """
+    function(n_clicks) {
+        if (!n_clicks) {
+            return window.dash_clientside.no_update;
+        }
+        
+        const sidebar = document.querySelector('.sidebar');
+        const backdrop = document.querySelector('.sidebar-backdrop');
+        
+        if (sidebar) {
+            sidebar.classList.remove('active');
+        }
+        if (backdrop) {
+            backdrop.classList.remove('active');
+        }
+        
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output('sidebar-backdrop', 'n_clicks', allow_duplicate=True),
+    Input('sidebar-backdrop', 'n_clicks'),
+    prevent_initial_call=True
+)
+
