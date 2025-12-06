@@ -6,3 +6,4 @@ openpyxl
 folium
 requests
 numpy
+waitress
