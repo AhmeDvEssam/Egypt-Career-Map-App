@@ -12,6 +12,9 @@ import callbacks.time_analysis_callbacks
 import callbacks.skills_analysis_callbacks
 import callbacks.clientside_callbacks
 
+# Import Flask routes
+import full_map_route
+
 # Define the app layout
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),

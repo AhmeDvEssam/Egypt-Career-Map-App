@@ -85,6 +85,24 @@ def city_map_layout():
                 style={'width': '250px', 'color': 'black'}
             )
         ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px'}),
+        
+        # Full Map Button
+        html.Div([
+            html.A(
+                html.Button([
+                    html.I(className='fa-solid fa-map', style={'marginRight': '8px'}),
+                    'Open Full Interactive Map'
+                ], className='btn btn-primary', style={
+                    'padding': '12px 24px',
+                    'fontSize': '16px',
+                    'fontWeight': 'bold',
+                    'borderRadius': '8px',
+                    'boxShadow': '0 4px 12px rgba(0,123,255,0.3)'
+                }),
+                href='/full-map',
+                target='_blank'
+            )
+        ], style={'textAlign': 'center', 'marginBottom': '15px'}),
 
         dbc.Row([
             dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '600px', 'overflowY': 'auto'}), width=6),

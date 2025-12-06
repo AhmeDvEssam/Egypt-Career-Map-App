@@ -204,14 +204,21 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         if not map_df.empty:
             map_data = []
             for _, row in map_df.iterrows():
-                job_title = str(row['Job Title']).replace("'", "")[:50]  # Limit length
-                company = str(row['Company']).replace("'", "")[:30]
-                city = str(row['City'])[:20]
+                job_title = str(row['Job Title']).replace("'", "")
+                company = str(row['Company']).replace("'", "")
+                city = str(row['City'])
+                in_city = str(row['In_City']) if pd.notna(row.get('In_City')) else ""
                 job_link = str(row['Link']) if pd.notna(row['Link']) else "#"
                 
-                # SIMPLIFIED tooltip - much smaller HTML
-                tooltip_html = f"<b>{job_title}</b><br>{company}<br>{city}"
-                
+                # Rich tooltip with In_City and CTA
+                tooltip_html = f"""
+                <div style="font-family: Arial, sans-serif; min-width: 180px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #000; margin-bottom: 3px;">{job_title[:60]}</div>
+                    <div style="font-size: 13px; color: #333; margin-bottom: 2px;">{company[:40]}</div>
+                    <div style="font-size: 12px; color: #0066CC; margin-bottom: 6px;">{city}{f' - {in_city}' if in_city else ''}</div>
+                    <div style="font-size: 11px; color: #0066CC; font-weight: bold; border-top: 1px solid #ddd; padding-top: 4px;">👉 Click to Visit Wuzzuf</div>
+                </div>
+                """
                 map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_html])
             
             # JS Callback for Clusters - Optimized
