@@ -107,6 +107,7 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
         wordcloud_fig.update_traces(
             textinfo="label+value",
             root_color="rgba(0,0,0,0)",
+            textfont=dict(color='white', size=16, weight='bold'), # FORCE WHITE TEXT + BOLD
             hovertemplate='<b>%{label}</b><br>Count: %{value}<extra></extra>'
         )
     else:
@@ -140,6 +141,9 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
             
             # Dynamic Height for Scrollbar
             dynamic_height = max(600, len(category_counts) * 50)
+            
+            # Calculate max val for range buffer
+            max_val = category_counts['count'].max()
 
             category_breakdown_fig = px.bar(
                 category_counts,
@@ -153,11 +157,12 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
                 height=dynamic_height
             )
             
-            category_breakdown_fig.update_traces(textposition='outside', textfont=dict(size=14, color='#ffffff' if theme == 'dark' else '#001f3f'))
-            category_breakdown_fig.update_layout(margin=dict(l=10, r=10, t=50, b=10))
-            
-        else:
-            category_breakdown_fig = px.bar(pd.DataFrame({'Category': [], 'count': []}), x='count', y='Category', orientation='h', title='No Data Available for Selection')
+            category_breakdown_fig.update_traces(textposition='outside', textfont=dict(size=14, color='#ffffff' if theme == 'dark' else '#001f3f'), cliponaxis=False)
+            # Add 35% buffer to X-axis to fit long labels
+            category_breakdown_fig.update_layout(
+                margin=dict(l=10, r=50, t=50, b=10),
+                xaxis=dict(range=[0, max_val * 1.35], showgrid=False, showticklabels=False) 
+            )
     else:
         category_breakdown_fig = px.bar(pd.DataFrame({'Category': [], 'count': []}), x='count', y='Category', orientation='h', title='Skills Demand by Category (Empty)')
     
@@ -229,7 +234,7 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             font=dict(color=font_color, family='Inter'),
-            title_font=dict(size=40, color=font_color), # Adjusted size
+            title_font=dict(size=28, color=font_color), # Reduced from 40 for better fit
             xaxis_title=None,
             yaxis_title=None,
             coloraxis_showscale=False,
@@ -252,7 +257,8 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
              fig.update_traces(hovertemplate='<span style="color:white; font-family:Inter;"><b>%{label}</b><br>Count: %{value}</span><extra></extra>')
 
     # Apply large fonts
-    wordcloud_fig = apply_large_fonts_to_chart(wordcloud_fig, theme=theme)
+    # Apply large fonts
+    # skipped wordcloud_fig to preserve white text styling
     category_breakdown_fig = apply_large_fonts_to_chart(category_breakdown_fig, theme=theme)
     top_skills_fig = apply_large_fonts_to_chart(top_skills_fig, theme=theme)
     skills_trend_fig = apply_large_fonts_to_chart(skills_trend_fig, theme=theme)

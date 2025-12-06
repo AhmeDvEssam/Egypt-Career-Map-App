@@ -22,7 +22,8 @@
     --light-blue: #3399FF;
     --accent-cyan: #00CCFF;
     --card-bg: rgba(0, 102, 204, 0.15);
-    --sidebar-width: 280px;
+    --sidebar-width: 355px;
+    /* Increased to 355px per final tweak */
     --navbar-height: 70px;
 }
 
@@ -107,7 +108,8 @@ body {
     bottom: 0;
     left: 0;
     width: var(--sidebar-width);
-    padding: 30px 20px;
+    padding: 30px 20px 255px 20px;
+    /* INCREASED BOTTOM PADDING for Filter Popups */
     background: white;
     /* Default light */
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.03);
@@ -219,34 +221,38 @@ body.sidebar-collapsed .content-container {
     .sidebar.active {
         transform: translateX(0);
     }
+}
 
-    /* ============================================
+/* RESTORED MISSING CLOSING BRACE */
+
+/* ============================================
    CRITICAL VISIBILITY FIXES (Light Mode)
    ============================================ */
 
-    /* Force specific colors for Light Mode (Default) */
-    body:not(.dark-mode) .kpi-card-v2 {
-        background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-    }
+/* Force specific colors for Light Mode (Default) */
+body:not(.dark-mode) .kpi-card-v2 {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
 
-    body:not(.dark-mode) .kpi-value-v2 {
-        color: #001F3F !important;
-        /* Navy Blue */
-        text-shadow: none !important;
-        font-weight: 800 !important;
-    }
+body:not(.dark-mode) .kpi-value-v2 {
+    color: #001F3F !important;
+    /* Navy Blue */
+    text-shadow: none !important;
+    font-weight: 800 !important;
+}
 
-    body:not(.dark-mode) .kpi-label-v2 {
-        color: #475569 !important;
-        /* Slate 600 */
-        font-weight: 600 !important;
-    }
+body:not(.dark-mode) .kpi-label-v2 {
+    color: #475569 !important;
+    /* Slate 600 */
+    font-weight: 600 !important;
+}
 
-    body:not(.dark-mode) h1,
-    body:not(.dark-mode) h2,
-    body:not(.dark-mode) h3 {
-        color: #0f172a !important;
-    }
+body:not(.dark-mode) h1,
+body:not(.dark-mode) h2,
+body:not(.dark-mode) h3 {
+    color: #0f172a !important;
+}
+
 /* CACHE BUST v3 */

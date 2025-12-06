@@ -100,4 +100,56 @@ body.dark-mode ::-webkit-scrollbar-track {
     background: transparent;
 }
 
+/* 7. Dropdown / React-Select Fixes for Dark Mode */
+body.dark-mode .Select-control,
+body.dark-mode .Select-menu-outer {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+body.dark-mode .Select-value-label {
+    color: white !important;
+}
+
+body.dark-mode .VirtualLooper {
+    color: white !important;
+}
+
+body.dark-mode .Select-placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.dark-mode .Select-option {
+    background-color: #1e293b;
+    color: white;
+}
+
+body.dark-mode .Select-option.is-focused {
+    body.dark-mode .CalendarDay__default {
+        background-color: #1e293b;
+        color: white;
+        border: 1px solid #334155;
+    }
+
+    body.dark-mode .CalendarDay__selected {
+        background: #3a7bd5 !important;
+        color: white !important;
+    }
+
+    /* Ensure Sidebar filters aren't clipped */
+    .sidebar {
+        overflow-y: auto !important;
+        /* Allow scrolling if content overflows */
+        padding-bottom: 100px !important;
+        /* Extra space at bottom */
+        z-index: 1000 !important;
+    }
+
+    /* Fix Dropdown Menu Z-Index clipping */
+    .Select-menu-outer {
+        z-index: 9999 !important;
+    }
+}
+
 /* CACHE BUST v3 */

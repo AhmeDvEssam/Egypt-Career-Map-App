@@ -75,10 +75,14 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
             
         # Prepare time data
         if 'posted' in filtered_df.columns and not filtered_df['posted'].dropna().empty:
-            filtered_df['Month'] = filtered_df['posted'].dt.to_period('M').astype(str)
+            # Format as "Month Year" for clear X-axis labels (e.g., "January 2025")
+            filtered_df['Month'] = filtered_df['posted'].dt.strftime('%B %Y')
+            # Create a sort key to ensure chronological order, not alphabetical
+            filtered_df['Month_Sort'] = filtered_df['posted'].dt.to_period('M')
             filtered_df['Day'] = filtered_df['posted'].dt.day_name()
         else:
             filtered_df['Month'] = pd.Series(dtype='object')
+            filtered_df['Month_Sort'] = pd.Series(dtype='object')
             filtered_df['Day'] = pd.Series(dtype='object')
     except Exception as e:
         print(f"Error in update_time_analysis: {e}")
@@ -88,7 +92,8 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
     
     # Month-Day line chart
     if not filtered_df['Month'].dropna().empty:
-        month_day_df = filtered_df.groupby(['Month', 'Day']).size().reset_index(name='count')
+        # Sort by Month_Sort
+        month_day_df = filtered_df.groupby(['Month', 'Month_Sort', 'Day']).size().reset_index(name='count').sort_values('Month_Sort')
         month_day_fig = px.line(month_day_df, x='Month', y='count', color='Day', title='Jobs by Month and Day')
     else:
         month_day_fig = px.line(pd.DataFrame({'Month': [], 'count': [], 'Day': []}), x='Month', y='count', color='Day', title='Jobs by Month and Day')
@@ -97,18 +102,21 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
     deep_blue_scale = get_color_scale(theme)
 
     if not filtered_df['Month'].dropna().empty:
-        month_df = filtered_df['Month'].value_counts().reset_index(name='count').rename(columns={'index': 'Month'}).sort_values('Month')
+        # Group by Month and sort
+        month_df = filtered_df.groupby(['Month', 'Month_Sort']).size().reset_index(name='count').sort_values('Month_Sort')
+        
         month_bar_fig = px.bar(month_df, x='Month', y='count', title='Jobs by Month', color='count', color_continuous_scale=deep_blue_scale, text='count')
+        # Ensure only ONE bar per month (achieved by groupby Month)
     else:
         month_bar_fig = px.bar(pd.DataFrame({'Month': [], 'count': []}), x='Month', y='count', title='Jobs by Month')
     
     # Applicants trend
     # Applicants trend
     if 'applicants' in filtered_df.columns and not filtered_df['Month'].dropna().empty:
-        applicants_trend = filtered_df.groupby('Month')['applicants'].mean().reset_index()
-        applicants_trend_fig = px.line(applicants_trend, x='Month', y='applicants', title='Average Applicants Trend')
+        applicants_trend = filtered_df.groupby(['Month', 'Month_Sort'])['applicants'].mean().reset_index().sort_values('Month_Sort')
+        applicants_trend_fig = px.line(applicants_trend, x='Month', y='applicants', title='Average Applicants Trend', markers=True)
     else:
-        applicants_trend_fig = px.line(pd.DataFrame({'Month': [], 'applicants': []}), x='Month', y='applicants', title='Average Applicants Trend')
+        applicants_trend_fig = px.line(pd.DataFrame({'Month': [], 'applicants': []}), x='Month', y='applicants', title='Average Applicants Trend', markers=True)
     
     # Style figures with dark theme
     font_color = '#ffffff' if theme == 'dark' else '#001F3F'
@@ -134,11 +142,17 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
             )
         )
         if fig == month_bar_fig:
+             # Calculate max value to add headroom for labels
+             max_y = 0
+             if not month_df.empty:
+                 max_y = month_df['count'].max()
+             
              fig.update_layout(
                  xaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=True, tickfont=dict(size=22, color=font_color)),
-                 yaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=False)
+                 # Add 20% headroom for top labels
+                 yaxis=dict(showgrid=False, showline=False, zeroline=False, showticklabels=False, range=[0, max_y * 1.2])
              )
-             fig.update_traces(textposition='outside', textfont=dict(size=22, color=font_color))
+             fig.update_traces(textposition='outside', textfont=dict(size=22, color=font_color), cliponaxis=False)
         
         if fig == month_day_fig:
             fig.update_traces(hovertemplate='<span style="color:white; font-family:Inter;"><b>%{x}</b><br>Day: %{fullData.name}<br>Count: %{y}</span><extra></extra>')
@@ -177,9 +191,12 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
     if 'Day' in filtered_df.columns and not filtered_df['Day'].dropna().empty:
         peak_day = filtered_df['Day'].value_counts().index[0]
 
-    # Apply large fonts to all charts
-    month_day_fig = apply_large_fonts_to_chart(month_day_fig, theme=theme)
-    month_bar_fig = apply_large_fonts_to_chart(month_bar_fig, theme=theme)
-    applicants_trend_fig = apply_large_fonts_to_chart(applicants_trend_fig, theme=theme)
+    # FORCE X-AXIS VISIBILITY (Override any default hiding)
+    # Ensure Month Bar Chart uses Categorical Axis to prevent date grouping issues
+    month_bar_fig.update_xaxes(type='category', showticklabels=True, tickfont=dict(size=14, color=font_color))
+    month_day_fig.update_xaxes(type='category', showticklabels=True, tickfont=dict(size=14, color=font_color))
+    applicants_trend_fig.update_xaxes(type='category', showticklabels=True, tickfont=dict(size=14, color=font_color))
+
+    # Do NOT call apply_large_fonts_to_chart because it hides X-axis labels globally
     
     return f"{total_jobs_period:,}", mom_growth, avg_applicants_trend, peak_day, month_day_fig, month_bar_fig, applicants_trend_fig

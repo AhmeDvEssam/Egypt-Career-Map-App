@@ -117,9 +117,11 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     vc = s.value_counts().reset_index()
     vc.columns = [col, 'count']
     work_mode_fig = px.pie(vc, values='count', names=col, title='Jobs by Work Mode', hole=0.5, color_discrete_sequence=px.colors.sequential.Blues_r)
-    work_mode_fig.update_traces(textposition='inside', textinfo='percent+label', rotation=-45)
+    work_mode_fig.update_traces(textposition='inside', textinfo='percent+label', rotation=-45, textfont=dict(color='white'))
     apply_visual_highlighting(work_mode_fig, vc[col].tolist(), work_modes, is_pie=True)
     apply_chart_styling(work_mode_fig, is_horizontal_bar=False, add_margin=False, theme=theme)  # ✅ Pass theme
+    # FORCE WHITE TEXT AGAIN because apply_chart_styling might have overwritten it
+    work_mode_fig.update_traces(textfont=dict(color='white', size=14, weight='bold'))
     
     # Career Level
     col = 'Career Level'

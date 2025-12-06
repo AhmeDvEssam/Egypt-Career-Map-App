@@ -1,4 +1,4 @@
-from dash import Input, Output, State, dash_table
+from dash import Input, Output, State, dash_table, callback_context, no_update
 import plotly.express as px
 import pandas as pd
 import folium
@@ -28,86 +28,87 @@ from utils import get_color_scale, apply_visual_highlighting, apply_chart_stylin
      Input('sidebar-month-filter', 'value'),
      Input('map-style-dropdown', 'value'),
      Input('global-search-bar', 'value'),
-     Input('theme-store', 'data')]
+     Input('theme-store', 'data'),
+     Input('jobs-table', 'active_cell')]  # For Linking Table -> Map
 )
-def update_city_map(companies, cities, categories, work_modes, employment_types, career_levels, education_levels, start_date, end_date, in_cities, avg_exp_range, months, map_style, search_text, theme):
+def update_city_map(companies, cities, categories, work_modes, employment_types, career_levels, education_levels, start_date, end_date, in_cities, avg_exp_range, months, map_style, search_text, theme, active_cell):
+    
+    ctx = callback_context
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else 'initial'
+
+    # 1. Base Filtering
     filtered_df = df.copy()
     
-    # Calculate KPIs first
-    total_jobs_city = len(filtered_df)
-    top_city = filtered_df['City'].value_counts().index[0] if 'City' in filtered_df.columns and not filtered_df.empty else "N/A"
-    avg_jobs_per_city = round(filtered_df.groupby('City').size().mean(), 1) if 'City' in filtered_df.columns and not filtered_df.empty else 0
+    if companies: filtered_df = filtered_df[filtered_df['Company'].isin(companies)]
+    if cities: filtered_df = filtered_df[filtered_df['City'].isin(cities)]
+    if categories: filtered_df = filtered_df[filtered_df['Category'].isin(categories)]
+    if work_modes: filtered_df = filtered_df[filtered_df['Work Mode'].isin(work_modes)]
+    if employment_types: filtered_df = filtered_df[filtered_df['Employment Type'].isin(employment_types)]
+    if career_levels: filtered_df = filtered_df[filtered_df['Career Level'].isin(career_levels)]
+    if education_levels: filtered_df = filtered_df[filtered_df['education_level'].isin(education_levels)]
     
-    # Apply filters
-    if companies:
-        filtered_df = filtered_df[filtered_df['Company'].isin(companies)]
-    if cities:
-        filtered_df = filtered_df[filtered_df['City'].isin(cities)]
-    if categories:
-        filtered_df = filtered_df[filtered_df['Category'].isin(categories)]
-    if work_modes:
-        filtered_df = filtered_df[filtered_df['Work Mode'].isin(work_modes)]
-    if employment_types:
-        filtered_df = filtered_df[filtered_df['Employment Type'].isin(employment_types)]
-    if career_levels:
-        filtered_df = filtered_df[filtered_df['Career Level'].isin(career_levels)]
-    if education_levels:
-        filtered_df = filtered_df[filtered_df['education_level'].isin(education_levels)]
     if start_date and end_date and 'posted' in filtered_df.columns:
         filtered_df['posted'] = pd.to_datetime(filtered_df['posted'], errors='coerce')
         filtered_df = filtered_df[(filtered_df['posted'] >= start_date) & (filtered_df['posted'] <= end_date)]
-
-    # In-City filter
+        
     if in_cities and 'In_City' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['In_City'].isin(in_cities)]
-    
-    # Avg Years of Experience filter
+        
     if avg_exp_range and 'Year Of Exp_Avg' in filtered_df.columns:
-        min_exp, max_exp = avg_exp_range[0], avg_exp_range[1]
-        filtered_df = filtered_df[(filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)]
-    
-    # Month filter
+        filtered_df = filtered_df[(filtered_df['Year Of Exp_Avg'] >= avg_exp_range[0]) & (filtered_df['Year Of Exp_Avg'] <= avg_exp_range[1])]
+        
     if months and 'posted' in filtered_df.columns:
         filtered_df['posted'] = pd.to_datetime(filtered_df['posted'], errors='coerce')
         filtered_df = filtered_df[filtered_df['posted'].dt.month.isin(months)]
-
-    # Apply search text filter
+        
     if search_text and search_text.strip():
         from utils import filter_dataframe_by_search
         filtered_df = filter_dataframe_by_search(filtered_df, search_text)
-    
-    # City bar chart
+
+    # --- KPI Calculations ---
+    total_jobs_city = len(filtered_df)
+    top_city = filtered_df['City'].value_counts().index[0] if 'City' in filtered_df.columns and not filtered_df.empty else "N/A"
+    avg_jobs_per_city = round(filtered_df.groupby('City').size().mean(), 1) if 'City' in filtered_df.columns and not filtered_df.empty else 0
+
+    # --- City Bar Chart ---
     col = 'City'
     s = filtered_df[col] if col in filtered_df.columns else pd.Series(dtype='object')
     city_counts = s.value_counts().reset_index()
     city_counts.columns = [col, 'count']
-    city_counts = city_counts.sort_values('count', ascending=True)
-
-    deep_blue_scale = get_color_scale(theme)
-
-    city_bar_fig = px.bar(city_counts, x='count', y=col, title='Jobs by City', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
-    apply_visual_highlighting(city_bar_fig, city_counts[col].tolist(), cities, is_pie=False)
+    city_counts = city_counts.sort_values('count', ascending=True).tail(20)
     
-    # Dynamic height
-    dynamic_height = max(500, len(city_counts) * 60)
+    deep_blue_scale = get_color_scale(theme)
+    city_bar_fig = px.bar(city_counts, x='count', y=col, title='Jobs by City', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
+    dynamic_height = max(500, len(city_counts) * 40)
     city_bar_fig.update_layout(height=dynamic_height)
     apply_chart_styling(city_bar_fig, is_horizontal_bar=True, theme=theme)
-    city_bar_fig = apply_large_fonts_to_chart(city_bar_fig, theme=theme)
-    
-    # --- Generate Folium Map ---
+
+    # --- Interactivity: Check for Table Selection ---
     center_location = [26.8, 30.8]
     zoom_level = 6
+    highlight_row = None
     
-    if cities and len(cities) > 0:
-        city_data = filtered_df[filtered_df['City'] == cities[0]]
-        if not city_data.empty and 'Latitude' in city_data.columns and 'Longitude' in city_data.columns:
-            city_coords_df = city_data[['Latitude', 'Longitude']].dropna()
-            if not city_coords_df.empty:
-                city_coords = city_coords_df.iloc[0]
-                center_location = [city_coords['Latitude'], city_coords['Longitude']]
-                zoom_level = 11
-    
-    # Determine map tiles
+    # If Triggered by Table Click (Link Table -> Map)
+    if triggered_id == 'jobs-table' and active_cell:
+        row_idx = active_cell['row']
+        if row_idx < len(filtered_df):
+            target_row = filtered_df.iloc[row_idx]
+            if pd.notna(target_row['Latitude']) and pd.notna(target_row['Longitude']):
+                center_location = [target_row['Latitude'], target_row['Longitude']]
+                zoom_level = 15 # Zoom in on the job
+                highlight_row = target_row
+    elif cities and len(cities) > 0:
+         # Fallback to City Center if no row selected but city filter exists
+         city_data = filtered_df[filtered_df['City'] == cities[0]]
+         if not city_data.empty and 'Latitude' in city_data.columns and 'Longitude' in city_data.columns:
+             city_coords_df = city_data[['Latitude', 'Longitude']].dropna()
+             if not city_coords_df.empty:
+                 city_coords = city_coords_df.iloc[0]
+                 center_location = [city_coords['Latitude'], city_coords['Longitude']]
+                 zoom_level = 11
+
+    # --- Generate Folium Map ---
+    # Map Tiles Logic
     if map_style == 'dark':
         tiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -130,25 +131,19 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         tiles=tiles,
         attr=attr,
         zoom_control=True,
-        scrollWheelZoom=True,
-        max_bounds=True,
-        min_zoom=5,
-        max_zoom=15
+        scrollWheelZoom=True
     )
     
-    m.fit_bounds([[22, 25], [32, 37]])
-    
+    # Only fit bounds if we are NOT zoomed in on a specific job
+    if highlight_row is None and not (cities and len(cities) > 0):
+        m.fit_bounds([[22, 25], [32, 37]])
+
     map_df = filtered_df.copy()
-    if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns and 'City' in map_df.columns:
-        map_df = map_df[
-            map_df['Latitude'].notna() & 
-            map_df['Longitude'].notna() &
-            (map_df['Latitude'] >= 22) & 
-            (map_df['Latitude'] <= 32) &
-            (map_df['Longitude'] >= 25) & 
-            (map_df['Longitude'] <= 37)
-        ]
-        
+    if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
+        map_df = map_df.dropna(subset=['Latitude', 'Longitude'])
+        # Filter bounds
+        map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
+
         if not map_df.empty:
             map_data = []
             for _, row in map_df.iterrows():
@@ -163,11 +158,12 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                     <div style="font-size: 16px; font-weight: 900; color: black; margin-bottom: 4px; line-height: 1.2;">{job_title}</div>
                     <div style="font-size: 15px; color: #333; font-weight: bold; margin-bottom: 2px;">{company}</div>
                     <div style="font-size: 14px; color: #0066CC; margin-bottom: 8px;">{city} {f'- {in_city}' if in_city else ''}</div>
-                    <div style="font-size: 12px; color: #0066CC; font-weight: 800; border-top: 1px solid #eee; padding-top: 5px;">Click To Visit Wuzzuf.com ↗</div>
+                    <div style="font-size: 12px; color: #0066CC; font-weight: 800; border-top: 1px solid #eee; padding-top: 5px;">👉 Click to Visit Job Link</div>
                 </div>
                 """
                 map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_html])
             
+            # JS Callback for Clusters
             callback = """
             function (row) {
                 var marker = L.marker(new L.LatLng(row[0], row[1]));
@@ -185,65 +181,106 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
             """
             FastMarkerCluster(data=map_data, callback=callback, name='Jobs').add_to(m)
             
+            # If a row is highlighted, add a special marker in Red
+            if highlight_row is not None:
+                # Add a functional popup + click behavior (via popup for simplicity in Python)
+                target_link = str(highlight_row['Link']) if pd.notna(highlight_row['Link']) else "#"
+                popup_html = f'<a href="{target_link}" target="_blank" style="font-weight:bold; font-size:14px; color:#0066CC;">👉 Click to Visit Job Page</a>'
+                
+                folium.Marker(
+                    location=[highlight_row['Latitude'], highlight_row['Longitude']],
+                    tooltip="Selected Job: " + str(highlight_row['Job Title']),
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color='red', icon='info-sign')
+                ).add_to(m)
+
     map_html = m.get_root().render()
-    
-    # Table
-    candidate_cols = ['Job Title', 'Company', 'City', 'Category', 'applicants', 'Work Mode', 'Link']
-    present_cols = [c for c in candidate_cols if c in filtered_df.columns]
-    table_data_df = filtered_df[present_cols].copy()
-    
-    if 'Link' in table_data_df.columns and 'Job Title' in table_data_df.columns:
-        table_data_df['Job Title'] = table_data_df.apply(
-            lambda x: f"[{x['Job Title']}]({x['Link']})" if x['Link'] and x['Link'] != '#' else x['Job Title'], 
-            axis=1
-        )
-    
+
+    # --- Job Table (Updated with requested columns and rich tooltip) ---
+    display_cols = ['Job Title', 'Company', 'City', 'Category', 'Year Of Exp_Avg', 
+                   'Work Mode', 'Employment Type', 'Career Level', 'Skills', 'applicants', 'posted']
+    final_cols = [c for c in display_cols if c in filtered_df.columns]
+    rename_map = {'Year Of Exp_Avg': 'Exp (Yrs)', 'posted': 'Date Posted'}
+    table_df = filtered_df[final_cols].rename(columns=rename_map).copy()
+
+    # Ensure Title is a Link (Markdown) for "Click to Visit" behavior
+    if 'Link' in filtered_df.columns and 'Job Title' in table_df.columns:
+         # Need original Link column to construct markdown
+         # We already filtered table_df, so map by index or merge?
+         # filtered_df matches table_df indexwise if we didn't drop rows. We copied.
+         # Safer to rely on the fact we haven't reordered table_df relative to filtered_df yet.
+         links = filtered_df['Link'].fillna('#')
+         titles = table_df['Job Title']
+         table_df['Job Title'] = [f"[{t}]({l})" for t, l in zip(titles, links)]
+
+    if 'Date Posted' in table_df.columns:
+        table_df['Date Posted'] = pd.to_datetime(table_df['Date Posted'], errors='coerce').dt.strftime('%b %d')
+
     tooltip_data = []
-    for row in table_data_df.to_dict('records'):
-        row_tooltip = {}
-        tooltip_content = f"""### {row.get('Job Title', 'N/A')}
+    for i, row in table_df.iterrows():
+        # Rich Tooltip Content with all details
+        tt = f"""
+**{row.get('Job Title', 'N/A').split(']')[0][1:] if '[' in str(row.get('Job Title', '')) else row.get('Job Title', 'N/A')}**  
+*{row.get('Company', 'N/A')}*  
+📍 {row.get('City', 'N/A')} | 💼 {row.get('Work Mode', 'N/A')}  
+🎓 {row.get('Career Level', 'N/A')} | 🕒 {row.get('Employment Type', 'N/A')}  
 
-**{row.get('Company', 'N/A')}**  
-{row.get('City', 'N/A')} • {row.get('Category', 'N/A')}
+**Skills:**  
+{str(row.get('Skills', 'No skills listed'))[:200]}{'...' if len(str(row.get('Skills', ''))) > 200 else ''}
 
-_Click to visit Wuzzuf.com_"""
-        for col in table_data_df.columns:
-            row_tooltip[col] = {'value': tooltip_content, 'type': 'markdown'}
-        tooltip_data.append(row_tooltip)
+👉 **Click Title to Visit Link on Wuzzuf**
+        """
+        tooltip_data.append({c: {'value': tt, 'type': 'markdown'} for c in table_df.columns})
 
-    table = dash_table.DataTable(
+    style_header = {
+        'backgroundColor': '#0f172a', 
+        'color': '#f8fafc', 
+        'fontWeight': 'bold', 
+        'border': '1px solid #334155'
+    }
+    style_cell = {
+        'backgroundColor': '#1e293b' if theme == 'dark' else '#ffffff',
+        'color': '#e2e8f0' if theme == 'dark' else '#1e293b',
+        'border': '1px solid #334155' if theme == 'dark' else '1px solid #e2e8f0',
+        'padding': '12px',
+        'textAlign': 'left',
+        'fontFamily': 'Inter',
+        'maxWidth': '200px',
+        'overflow': 'hidden',
+        'textOverflow': 'ellipsis',
+    }
+    style_data_conditional = [
+        {'if': {'state': 'active'}, 'backgroundColor': 'rgba(56, 189, 248, 0.2)', 'border': '1px solid #38bdf8'},
+        {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(56, 189, 248, 0.3)', 'border': '1px solid #38bdf8'},
+        {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgba(255, 255, 255, 0.03)' if theme == 'dark' else '#f8fafc'}
+    ]
+
+    # Tooltip Styling (Large width, visible text)
+    css = [
+        {'selector': '.dash-spreadsheet td:hover', 'rule': 'color: #0066CC !important; font-weight: bold; cursor: pointer;'},
+        {'selector': '.dash-table-tooltip', 'rule': 'background-color: #1e293b !important; color: white !important; font-size: 14px; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); width: 400px !important; max-width: 400px !important; min-width: 400px !important; white-space: pre-wrap !important;'},
+        {'selector': '.dash-tooltip', 'rule': 'border: none !important;'}
+    ]
+
+    table_component = dash_table.DataTable(
         id='jobs-table',
-        data=table_data_df.to_dict('records'),
+        data=table_df.to_dict('records'),
         columns=[
-            {'name': i, 'id': i, 'presentation': 'markdown'} if i == 'Job Title' else {'name': i, 'id': i} 
-            for i in table_data_df.columns if i != 'Link'
+            {'name': i, 'id': i, 'presentation': 'markdown'} if i == 'Job Title' else {'name': i, 'id': i}
+            for i in table_df.columns
         ],
-        style_table={'overflowX': 'auto'},
-        style_cell={
-            'textAlign': 'left',
-            'padding': '10px',
-            'fontFamily': 'Inter',
-            'backgroundColor': 'rgba(255, 255, 255, 0.05)' if theme == 'dark' else 'white',
-            'color': 'white' if theme == 'dark' else '#001F3F',
-            'whiteSpace': 'normal',
-            'height': 'auto',
-        },
-        style_header={
-            'backgroundColor': '#001F3F',
-            'color': 'white',
-            'fontWeight': 'bold'
-        },
-        style_data_conditional=[
-            {'if': {'state': 'active'}, 'backgroundColor': 'rgba(0, 102, 204, 0.1)', 'border': '1px solid #0066CC'},
-            {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 102, 204, 0.1)', 'border': '1px solid #0066CC'}
-        ],
-        css=[{'selector': '.dash-spreadsheet td:hover', 'rule': 'color: #0066CC !important; font-weight: bold; cursor: pointer;'}],
+        style_table={'overflowX': 'auto', 'minWidth': '100%'}, # Ensure scrollbar appears
+        style_header=style_header,
+        style_cell=style_cell,
+        style_data_conditional=style_data_conditional,
         tooltip_data=tooltip_data,
         tooltip_duration=None,
+        css=css,
+        page_size=15,
         page_action='native',
-        page_size=10,
         sort_action='native',
-        filter_action='native'
+        filter_action='native',
+        row_selectable='single'
     )
-    
-    return f"{total_jobs_city:,}", top_city, f"{avg_jobs_per_city:.1f}", city_bar_fig, map_html, table
+
+    return f"{total_jobs_city:,}", top_city, f"{avg_jobs_per_city:.1f}", city_bar_fig, map_html, table_component

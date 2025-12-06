@@ -1,4 +1,4 @@
-from dash import html, dcc
+from dash import html, dcc, dash_table
 import dash_bootstrap_components as dbc
 from data_loader import df
 from datetime import datetime
@@ -95,5 +95,8 @@ def city_map_layout():
         dcc.Store(id='map-zoom-store', data={'zoom': 5, 'center': {'lat': 26.8, 'lon': 30.8}}),
 
         html.H4('Jobs (sample)'),
-        html.Div(id='job-table-container')
+        html.Div(id='job-table-container', children=[
+            # Initial Empty Table to prevent "Nonexistent object" callback error
+            dash_table.DataTable(id='jobs-table', data=[], columns=[], page_action='native', page_size=15)
+        ])
     ], style={'margin': 20})
