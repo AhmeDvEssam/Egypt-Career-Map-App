@@ -22,52 +22,68 @@ app.layout = html.Div([
     dcc.Store(id='click-filter-store', data=None),
     
     html.Div(id='theme-container', children=[
-        # Navbar with custom layout
+        # Mobile-Responsive Navbar
         dbc.Navbar(
             dbc.Container([
-                # Sidebar Toggle Button
-                html.Button(
-                    html.I(className="fas fa-bars"),
-                    id='sidebar-toggle-btn',
-                    className='sidebar-toggle-btn me-3',
-                    n_clicks=0
-                ),
-                
-                # Brand on the left
-                dbc.NavbarBrand("Hire Q", href="/", className="d-none d-md-block"),
-                dbc.NavbarBrand("HQ", href="/", className="d-md-none"),
-                
-                # Search bar next to brand (on the left)
+                # Left side: Sidebar toggle + Brand
                 html.Div([
-                    html.I(className="fas fa-search search-icon"),
-                    dcc.Input(
-                        id='global-search-bar',
-                        type='text',
-                        placeholder='Search jobs, skills, companies...',
-                        className='google-search-input',
-                        debounce=True
-                    )
-                ], className='google-search-bar google-search-bar-compact'),
-                
-                # Page links on the right
-                dbc.Nav([
-                    dbc.NavItem(dbc.NavLink("Overview", href="/", active="exact")),
-                    dbc.NavItem(dbc.NavLink("City Map", href="/city-map", active="exact")),
-                    dbc.NavItem(dbc.NavLink("Deep Analysis", href="/deep-analysis", active="exact")),
-                    dbc.NavItem(dbc.NavLink("Time Analysis", href="/time-analysis", active="exact")),
-                    dbc.NavItem(dbc.NavLink("Skills Analysis", href="/skills", active="exact")),
-                    dbc.NavItem(
-                        html.Button(
-                            [html.Span("🌙", className='icon'), " Dark Mode"],
-                            id='theme-toggle-btn',
-                            className='theme-toggle-btn'
-                        )
+                    html.Button(
+                        html.I(className="fas fa-bars"),
+                        id='sidebar-toggle-btn',
+                        className='sidebar-toggle-btn me-2',
+                        n_clicks=0
                     ),
-                ], className="ms-auto", style={'marginRight': '40px'}, navbar=True),
+                    dbc.NavbarBrand("Hire Q", href="/", className="d-none d-sm-block ms-2"),
+                    dbc.NavbarBrand("HQ", href="/", className="d-sm-none ms-2"),
+                ], className='d-flex align-items-center'),
+                
+                # Mobile hamburger toggle for nav links
+                dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
+                
+                # Collapsible navigation
+                dbc.Collapse(
+                    dbc.Nav([
+                        # Search bar (full width on mobile)
+                        dbc.NavItem(
+                            html.Div([
+                                html.I(className="fas fa-search search-icon"),
+                                dcc.Input(
+                                    id='global-search-bar',
+                                    type='text',
+                                    placeholder='Search...',
+                                    className='google-search-input',
+                                    debounce=True
+                                )
+                            ], className='google-search-bar google-search-bar-compact my-2 my-lg-0'),
+                            className='w-100 w-lg-auto'
+                        ),
+                        
+                        # Navigation links
+                        dbc.NavItem(dbc.NavLink("Overview", href="/", active="exact", className="nav-link-mobile")),
+                        dbc.NavItem(dbc.NavLink("City Map", href="/city-map", active="exact", className="nav-link-mobile")),
+                        dbc.NavItem(dbc.NavLink("Deep Analysis", href="/deep-analysis", active="exact", className="nav-link-mobile")),
+                        dbc.NavItem(dbc.NavLink("Time Analysis", href="/time-analysis", active="exact", className="nav-link-mobile")),
+                        dbc.NavItem(dbc.NavLink("Skills", href="/skills", active="exact", className="nav-link-mobile")),
+                        
+                        # Dark mode toggle
+                        dbc.NavItem(
+                            html.Button(
+                                [html.Span("🌙", className='icon'), html.Span(" Dark Mode", className='d-lg-inline d-none')],
+                                id='theme-toggle-btn',
+                                className='theme-toggle-btn mt-2 mt-lg-0'
+                            ),
+                            className='ms-lg-2'
+                        ),
+                    ], className="ms-auto", navbar=True),
+                    id="navbar-collapse",
+                    is_open=False,
+                    navbar=True,
+                ),
             ], fluid=True),
             color="primary",
             dark=True,
             className="custom-navbar",
+            sticky="top",
         ),
         
         # Sidebar Tab (Mobile/Toggle)
