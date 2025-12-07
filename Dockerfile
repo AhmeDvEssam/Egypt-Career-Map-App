@@ -18,11 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port (Fly.io will set PORT env var)
+# Expose port
 EXPOSE 8080
 
-# Set default PORT if not provided
+# Set default PORT
 ENV PORT=8080
 
-# Run with waitress
-CMD ["sh", "-c", "waitress-serve --host=0.0.0.0 --port=$PORT --threads=6 --channel-timeout=60 index:server"]
+# Run with gunicorn (Railway compatible)
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 index:server
