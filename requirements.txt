@@ -6,5 +6,5 @@ openpyxl
 folium
 requests
 numpy
-waitress
+gunicorn
 flask-caching
