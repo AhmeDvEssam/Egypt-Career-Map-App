@@ -7,7 +7,7 @@ bind = f"0.0.0.0:{os.getenv('PORT', '8080')}"
 backlog = 2048
 
 # Worker processes
-workers = int(os.getenv('WORKERS', 2))  # 2 workers for 256MB RAM
+workers = 1  # Only 1 worker for 256MB RAM (was 2)
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 120
