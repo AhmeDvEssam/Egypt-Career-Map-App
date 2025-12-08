@@ -211,16 +211,13 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                 in_city = str(row['In_City']) if pd.notna(row.get('In_City')) else ""
                 job_link = str(row['Link']) if pd.notna(row['Link']) else "#"
                 
-                # Rich tooltip with In_City and CTA
-                tooltip_html = f"""
-                <div style="font-family: Arial, sans-serif; min-width: 180px;">
-                    <div style="font-size: 14px; font-weight: bold; color: #000; margin-bottom: 3px;">{job_title[:60]}</div>
-                    <div style="font-size: 13px; color: #333; margin-bottom: 2px;">{company[:40]}</div>
-                    <div style="font-size: 12px; color: #0066CC; margin-bottom: 6px;">{city}{f' - {in_city}' if in_city else ''}</div>
-                    <div style="font-size: 11px; color: #0066CC; font-weight: bold; border-top: 1px solid #ddd; padding-top: 4px;">👉 Click to Visit Wuzzuf</div>
-                </div>
-                """
-                map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_html])
+                
+                # Simplified tooltip - plain text for 60% smaller HTML
+                tooltip_text = f"{job_title[:50]} | {company[:30]} | {city}"
+                if in_city:
+                    tooltip_text += f" - {in_city}"
+                
+                map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_text])
             
             # JS Callback for Clusters - Optimized
             callback = """

@@ -10,15 +10,7 @@ app = dash.Dash(
         dbc.themes.BOOTSTRAP,
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css'
     ], 
-    suppress_callback_exceptions=True,
-    meta_tags=[
-        # Mobile viewport configuration
-        {"name": "viewport", "content": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"},
-        # PWA support
-        {"name": "mobile-web-app-capable", "content": "yes"},
-        {"name": "apple-mobile-web-app-capable", "content": "yes"},
-        {"name": "apple-mobile-web-app-status-bar-style", "content": "black-translucent"},
-    ]
+    suppress_callback_exceptions=True
 )
 server = app.server
 
