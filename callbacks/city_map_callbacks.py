@@ -212,12 +212,19 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                 job_link = str(row['Link']) if pd.notna(row['Link']) else "#"
                 
                 
-                # Simplified tooltip - plain text for 60% smaller HTML
-                tooltip_text = f"{job_title[:50]} | {company[:30]} | {city}"
-                if in_city:
-                    tooltip_text += f" - {in_city}"
+                # Rich HTML tooltip with more details
+                tooltip_html = f"""
+                <div style="font-family: Arial, sans-serif; min-width: 200px; max-width: 300px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #0066CC; margin-bottom: 5px;">{job_title}</div>
+                    <div style="font-size: 12px; color: #333; margin-bottom: 3px;"><b>Company:</b> {company}</div>
+                    <div style="font-size: 12px; color: #333; margin-bottom: 3px;"><b>Location:</b> {city}{f' - {in_city}' if in_city else ''}</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 8px; padding-top: 5px; border-top: 1px solid #ddd;">
+                        👉 Click marker to view job on Wuzzuf
+                    </div>
+                </div>
+                """
                 
-                map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_text])
+                map_data.append([row['Latitude'], row['Longitude'], job_link, tooltip_html])
             
             # JS Callback for Clusters - Optimized
             callback = """

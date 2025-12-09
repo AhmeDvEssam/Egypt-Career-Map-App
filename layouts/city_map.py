@@ -68,50 +68,57 @@ def city_map_layout():
             ], className='kpi-card-v2 kpi-float'), width=4),
         ], style={'marginBottom': 30}),
         
-        # Map Style Switcher
+        # Map Controls Row
         html.Div([
-            html.Label("Select Map Style:", style={'color': '#001F3F', 'marginRight': '10px', 'fontWeight': 'bold'}),
-            dcc.Dropdown(
-                id='map-style-dropdown',
-                options=[
-                    {'label': 'Light Theme (Voyager)', 'value': 'voyager'},
-                    {'label': 'Dark Theme (Dark Matter)', 'value': 'dark'},
-                    {'label': 'Satellite (Esri)', 'value': 'satellite'},
-                    {'label': 'Light Grey (Positron)', 'value': 'positron'},
-                    {'label': 'OpenStreetMap', 'value': 'osm'}
-                ],
-                value='satellite',  # Default to Satellite as discussed
-                clearable=False,
-                style={'width': '250px', 'color': 'black'}
-            )
-        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '20px'}),
-        
-        # Full Map Button - will be updated by callback with filters
-        html.Div([
-            html.A(
-                html.Button([
-                    html.I(className='fa-solid fa-map', style={'marginRight': '8px'}),
-                    'Open Full Interactive Map (with current filters)'
-                ], className='btn btn-primary', style={
-                    'padding': '12px 24px',
-                    'fontSize': '16px',
-                    'fontWeight': 'bold',
-                    'borderRadius': '8px',
-                    'boxShadow': '0 4px 12px rgba(0,123,255,0.3)'
-                }),
-                id='full-map-link',
-                href='/full-map',
-                target='_blank'
-            )
-        ], style={'textAlign': 'center', 'marginBottom': '15px'}),
+            # Map Style Dropdown
+            html.Div([
+                html.Label("Select Map Style:", style={'color': '#001F3F', 'marginRight': '10px', 'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    id='map-style-dropdown',
+                    options=[
+                        {'label': 'Light Theme (Voyager)', 'value': 'voyager'},
+                        {'label': 'Dark Theme (Dark Matter)', 'value': 'dark'},
+                        {'label': 'Satellite (Esri)', 'value': 'satellite'},
+                        {'label': 'Light Grey (Positron)', 'value': 'positron'},
+                        {'label': 'OpenStreetMap', 'value': 'osm'}
+                    ],
+                    value='satellite',
+                    clearable=False,
+                    style={'width': '220px', 'color': 'black'}
+                )
+            ], style={'marginRight': '10px'}),
+
+            # Switch Map Mode Button
+            dbc.Button(
+                [html.I(className="fa-solid fa-layer-group", style={'marginRight':'8px'}), "Switch to Interactive Map"],
+                id="switch-map-btn",
+                color="secondary",
+                style={'fontWeight':'bold', 'boxShadow':'0 2px 5px rgba(0,0,0,0.2)', 'marginRight': '10px'}
+            ),
+
+            # Full Map Button (Styled to Match)
+            dbc.Button(
+                [html.I(className="fa-solid fa-expand", style={'marginRight':'8px'}), "Open Full Screen Map"],
+                id="full-map-btn-link", # different ID to avoid callback issues if any, or wrap in A tag?
+                href="/full-map",
+                target="_blank",
+                external_link=True, # Important for DBC Button as Link
+                color="primary",
+                style={'fontWeight':'bold', 'boxShadow':'0 2px 5px rgba(0,0,0,0.2)'}
+            ),
+            
+        ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '15px', 'flexWrap': 'wrap', 'gap': '10px'}),
+
 
         dbc.Row([
-            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '600px', 'overflowY': 'auto'}), width=6),
-            dbc.Col(dcc.Loading(html.Iframe(id='city-map', style={'width': '100%', 'height': '600px', 'border': 'none'})), width=6),
+            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=5),
+            dbc.Col(html.Div(id='city-map-leaflet'), width=7), 
         ], style={'marginBottom': 20}),
 
-        # Store for managing zoom state on double-click
+        # STORES
         dcc.Store(id='map-zoom-store', data={'zoom': 5, 'center': {'lat': 26.8, 'lon': 30.8}}),
+        dcc.Store(id='selected-job-link-store', data=None),
+        dcc.Store(id='map-mode-store', data='leaflet'), # Default to Fast mode
 
         html.H4('Jobs (sample)'),
         html.Div(id='job-table-container', children=[

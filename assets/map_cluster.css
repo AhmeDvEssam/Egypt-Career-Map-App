@@ -1,0 +1,43 @@
+/* Custom Leaflet Tooltip for Counts Inside Circles */
+.circle-count-label {
+    background: transparent !important;
+    /* NO Background */
+    border: none !important;
+    box-shadow: none !important;
+    /* NO Shadow */
+    color: #000 !important;
+    /* Black Text */
+    text-shadow: 0 0 2px #fff, 0 0 4px #fff;
+    /* White Halo for contrast */
+    font-weight: 800;
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ensure tooltip acts as a label (No arrow) */
+.leaflet-tooltip.circle-count-label::before {
+    display: none !important;
+}
+
+/* Remove default Leaflet tooltip styling for these custom labels */
+.leaflet-tooltip.circle-count-label {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Dash Table Tooltip Styles */
+.dash-table-tooltip {
+    min-width: 400px !important;
+    max-width: 600px !important;
+    font-size: 14px !important;
+    background-color: #fcfcfc !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+    z-index: 10000 !important;
+}

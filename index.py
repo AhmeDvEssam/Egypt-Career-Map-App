@@ -6,7 +6,8 @@ from layouts.sidebar import create_sidebar
 # Import callbacks to register them
 import callbacks.general_callbacks
 import callbacks.overview_callbacks
-import callbacks.city_map_callbacks
+# import callbacks.city_map_callbacks  # OLD: Folium version
+import callbacks.city_map_callbacks_leaflet as city_map_callbacks  # NEW: Dash Leaflet
 import callbacks.deep_analysis_callbacks
 import callbacks.time_analysis_callbacks
 import callbacks.skills_analysis_callbacks
