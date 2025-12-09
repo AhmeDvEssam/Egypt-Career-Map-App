@@ -7,10 +7,15 @@ import time
 import requests
 from datetime import datetime, timedelta
 
+import sys
+
 def load_real_data():
     """Load job data from Excel and normalize columns."""
     # path to your file; use relative path for portability
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        base_dir = sys._MEIPASS
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(base_dir, 'Jobs.xlsx')
     if not os.path.exists(path):
         print(f"Warning: File not found at {path}")
@@ -477,7 +482,12 @@ except Exception as e:
     
 # Load Skills Data
 try:
-    skills_path = os.path.join(os.path.dirname(__file__), 'Skills_Cleaned_UnPivot.xlsx')
+    if getattr(sys, 'frozen', False):
+        base_dir = sys._MEIPASS
+    else:
+        base_dir = os.path.dirname(__file__)
+        
+    skills_path = os.path.join(base_dir, 'Skills_Cleaned_UnPivot.xlsx')
     if os.path.exists(skills_path):
         skills_df = pd.read_excel(skills_path)
         skills_df.rename(columns={'Jobs Title': 'Job Title'}, inplace=True) # Keep this line from original

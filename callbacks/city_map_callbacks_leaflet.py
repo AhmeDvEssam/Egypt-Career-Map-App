@@ -70,6 +70,7 @@ app.clientside_callback(
      Input('sidebar-employment-type-filter', 'value'),
      Input('sidebar-career-level-filter', 'value'),
      Input('sidebar-education-filter', 'value'),
+     Input('sidebar-avg-exp-filter', 'value'),
      Input('global-search-bar', 'value'),
      Input('map-style-dropdown', 'value'),
      Input('theme-store', 'data'),
@@ -78,7 +79,7 @@ app.clientside_callback(
     [State('jobs-table', 'data')]
 )
 def update_city_map(companies, cities, categories, work_modes, employment_types, 
-                    career_levels, education_levels, search_term, map_style, theme, 
+                    career_levels, education_levels, avg_exp_range, search_term, map_style, theme, 
                     active_cell, map_mode, current_table_data):
     
     # Default Mode
@@ -103,7 +104,16 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         filtered_df = filtered_df[filtered_df['Career Level'].isin(career_levels)]
         
     if education_levels:
-        filtered_df = filtered_df[filtered_df['Education_Level'].isin(education_levels)]
+        # Fixed Column Name
+        filtered_df = filtered_df[filtered_df['education_level'].isin(education_levels)]
+    if avg_exp_range:
+        # Added Avg Exp Filter
+        min_exp, max_exp = avg_exp_range
+        filtered_df = filtered_df[
+            (filtered_df['Year Of Exp_Avg'] >= min_exp) & 
+            (filtered_df['Year Of Exp_Avg'] <= max_exp)
+        ]
+        
     if search_term:
         mask = filtered_df.apply(lambda row: row.astype(str).str.contains(search_term, case=False, na=False).any(), axis=1)
         filtered_df = filtered_df[mask]
@@ -355,9 +365,13 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
     # Bar Chart 
     import plotly.express as px
     top_n_cities = 50
+    chart_data = city_counts.head(top_n_cities)
+    chart_df_local = pd.DataFrame({'City': chart_data.index, 'Count': chart_data.values})
+    
     city_bar_fig = px.bar(
-        x=city_counts.values[:top_n_cities],
-        y=city_counts.index[:top_n_cities],
+        chart_df_local,
+        x='Count',
+        y='City',
         orientation='h',
         title=f'Top {top_n_cities} Cities by Job Count',
         text_auto=True
