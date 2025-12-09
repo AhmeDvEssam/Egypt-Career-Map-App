@@ -181,6 +181,7 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         if map_style == 'dark': tiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'; attr = '&copy; OpenStreetMap &copy; CARTO'
         elif map_style == 'satellite': tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'; attr = 'Tiles &copy; Esri'
         elif map_style == 'positron': tiles = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'; attr = '&copy; OpenStreetMap &copy; CARTO'
+        elif map_style == 'osm': tiles = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'; attr = '&copy; OpenStreetMap contributors'
         else: tiles = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'; attr = '&copy; OpenStreetMap'
 
         m = folium.Map(location=center_location, zoom_start=zoom_level, tiles=tiles, attr=attr, zoom_control=True, scrollWheelZoom=True, prefer_canvas=True)
@@ -339,10 +340,12 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
             'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
             'positron': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
             'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-            'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            'osm': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         }
         tile_url = map_styles.get(map_style, map_styles['voyager'])
         if map_style == 'satellite': attribution = 'Tiles &copy; Esri'
+        elif map_style == 'osm': attribution = '&copy; OpenStreetMap contributors'
         else: attribution = '&copy; OpenStreetMap &copy; CARTO'
         
         map_output = dl.Map(
