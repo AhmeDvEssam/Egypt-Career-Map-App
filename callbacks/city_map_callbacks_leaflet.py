@@ -211,33 +211,50 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
             map_df = filtered_df.dropna(subset=['Latitude', 'Longitude'])
             map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
             
+            # PERFORMANCE CAP: Limit to 2000 points in Interactive Mode to prevent Railway Timeout
+            if len(map_df) > 2000:
+                print(f"Capping map_df from {len(map_df)} to 2000 for interactive map.")
+                map_df = map_df.head(2000)
+            
             # OPTIMIZATION: If a single job is selected (Table Click), skip heavy cluster generation to prevent timeout.
             # Only show the cluster if we are in "Explore Mode" (no single selection focused).
             if not selected_lat and not map_df.empty:
                 map_data = []
-                for _, row in map_df.iterrows():
+                # Optimized Loop using zip (10x faster than iterrows)
+                # Pre-calc columns to avoid overhead
+                cols = ['Latitude', 'Longitude', 'Job Title', 'Company', 'City', 'Link', 'In_City']
+                # Ensure columns exist
+                for c in cols: 
+                    if c not in map_df.columns: map_df[c] = ""
+                
+                # Vectorized iterator
+                for lat, lon, title, comp, city, link, in_city in zip(
+                    map_df['Latitude'], map_df['Longitude'], map_df['Job Title'], 
+                    map_df['Company'], map_df['City'], map_df['Link'], map_df['In_City']
+                ):
                     try:
-                        job_title = str(row['Job Title']).replace("'", "")
-                        company = str(row['Company']).replace("'", "")
-                        city = str(row['City'])
-                        in_city = str(row.get('In_City', ''))
-                        if in_city and in_city.lower() != 'nan':
-                             city = f"{city} - {in_city}"
+                        job_title = str(title).replace("'", "")
+                        company = str(comp).replace("'", "")
+                        city_str = str(city)
+                        in_city_str = str(in_city)
                         
-                        link = str(row['Link']) if pd.notna(row['Link']) else "#"
+                        if in_city_str and in_city_str.lower() != 'nan':
+                             city_str = f"{city_str} - {in_city_str}"
                         
-                        # Popup Content
+                        link_val = str(link) if pd.notna(link) else "#"
+                        
+                        # Popup Content (Simplified for Performance)
                         popup_html = f"""
                         <div style="font-family: 'Segoe UI', sans-serif; min-width: 250px; font-size: 14px;">
                             <div style="font-weight: bold; font-size: 16px; color: #111; margin-bottom: 5px;">{job_title}</div>
                             <div style="font-size: 14px; color: #555; margin-bottom: 2px;">{company}</div>
-                            <div style="font-size: 13px; color: #777; margin-bottom: 8px;">{city}</div>
-                            <a href="{link}" target="_blank" style="display: inline-block; text-decoration: none; color: white; background-color: #0066CC; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px;">
-                               visit Job Link In Wuzzuf <span style="margin-left:5px;">&#8594;</span>
+                            <div style="font-size: 13px; color: #777; margin-bottom: 8px;">{city_str}</div>
+                            <a href="{link_val}" target="_blank" style="display: inline-block; text-decoration: none; color: white; background-color: #0066CC; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                               Visit Job Link
                             </a>
                         </div>
                         """
-                        map_data.append([row['Latitude'], row['Longitude'], link, popup_html])
+                        map_data.append([lat, lon, link_val, popup_html])
                     except: continue
                     
                 callback = """
