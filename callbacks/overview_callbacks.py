@@ -58,7 +58,7 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
         filtered_df = filtered_df[filtered_df['In_City'].isin(in_cities)]
     
     # Avg Years of Experience filter
-        if avg_exp_range and 'Year Of Exp_Avg' in filtered_df.columns:
+    if avg_exp_range and 'Year Of Exp_Avg' in filtered_df.columns:
         min_exp, max_exp = avg_exp_range[0], avg_exp_range[1]
         mask = (filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)
         if min_exp == 0:
@@ -154,7 +154,10 @@ def update_overview(companies, cities, categories, work_modes, employment_types,
     work_mode_fig = apply_large_fonts_to_chart(work_mode_fig, theme=theme)
     career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme=theme)
     top_categories_fig = apply_large_fonts_to_chart(top_categories_fig, theme=theme)
-    
+
+    # FINAL FORCE: Ensure Donut Chart Text is White and Bold (Overriding large fonts if needed)
+    work_mode_fig.update_traces(textfont=dict(color='white', size=16, weight='bold'), textposition='inside')
+
     from utils import format_kpi_value
 
     # 🎨 INLINE STYLE INJECTION via Helper

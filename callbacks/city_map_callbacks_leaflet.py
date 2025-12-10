@@ -340,20 +340,35 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                     count = len(group)
                     lat = group['Latitude'].mean()
                     lon = group['Longitude'].mean()
+                    
+                    # Size Logic
                     radius = 15
                     if count > 50: radius = 22
                     if count > 200: radius = 30
                     if count > 1000: radius = 38
+                    size = radius * 2
+                    
                     fill_color = get_color(count, max_val)
                     
-                    label_content = html.Div([
-                        html.Div(str(count), style={'fontSize': '16px', 'fontWeight': '900', 'color': 'black', 'textShadow': '0 0 3px white', 'lineHeight': '1'}),
-                        html.Div(city_name, style={'position': 'absolute', 'top': '10px', 'left': '50%', 'transform': 'translate(-50%, 100%)', 'backgroundColor': 'white', 'border': '2px solid #333', 'borderRadius': '4px', 'padding': '2px 6px', 'fontSize': '12px', 'fontWeight': 'bold', 'color': 'black', 'whiteSpace': 'nowrap', 'boxShadow': '0 2px 4px rgba(0,0,0,0.2)', 'zIndex': '1000'})
-                    ], style={'display':'flex', 'flexDirection':'column', 'alignItems':'center', 'justifyContent':'center', 'position': 'relative', 'width': '0', 'height': '0', 'overflow': 'visible'})
-
                     markers.append(dl.CircleMarker(
-                        center=[lat, lon], radius=radius, color='white', weight=1, fillColor=fill_color, fillOpacity=0.9,
-                        children=[dl.Tooltip(label_content, permanent=True, direction='center', className='circle-count-label', opacity=1)],
+                        center=[lat, lon],
+                        radius=radius,
+                        color='white',
+                        weight=1,
+                        fillColor=fill_color,
+                        fillOpacity=0.8,
+                        children=[
+                            dl.Tooltip(
+                                html.Div([
+                                    html.Span(str(count), className='marker-count'),
+                                    html.Span(city_name, className='marker-name')
+                                ], className='marker-content'),
+                                permanent=True, 
+                                direction='center', 
+                                className='custom-marker-tooltip',
+                                opacity=1
+                            )
+                        ],
                         id=f"city-marker-{city_name}"
                     ))
 
@@ -608,3 +623,29 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         full_map_href
     )
 
+
+
+# Callback to sync Map Zoom/Center to Store
+@app.callback(
+    Output('map-zoom-store', 'data'),
+    [Input('city-map-leaflet-internal', 'zoom'),
+     Input('city-map-leaflet-internal', 'center')],
+    prevent_initial_call=True
+)
+def update_map_store(zoom, center):
+    if zoom is None: return no_update
+    return {'zoom': zoom, 'center': center}
+
+
+# CLIENT-SIDE CALLBACK FOR MAP CLASS ZOOM
+app.clientside_callback(
+    """
+    function(zoom_data) {
+        if (!zoom_data) return 'map-low-zoom';
+        if (zoom_data.zoom > 7) return 'map-high-zoom';
+        return 'map-low-zoom';
+    }
+    """,
+    Output('map-wrapper', 'className'),
+    Input('map-zoom-store', 'data')
+)

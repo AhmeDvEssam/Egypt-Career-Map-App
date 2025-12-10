@@ -1,0 +1,77 @@
+/* Custom Map Marker Styling */
+
+/* Reset default Leaflet Tooltip styles for our custom class */
+.leaflet-tooltip.custom-marker-tooltip {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+}
+
+/* Container for Count and Name */
+.marker-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    pointer-events: none;
+    /* Let clicks pass through to the circle */
+}
+
+/* The Number inside the Circle */
+/* We position it absolutely to center it over the CircleMarker */
+.marker-count {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    /* Adjust based on typical circle size */
+    color: white;
+    /* Assuming dark circles, or dynamic? Using text-shadow for safety */
+    text-shadow: 0px 0px 2px black;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* The City Name Label */
+.marker-name {
+    background-color: white;
+    color: black;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+
+    /* positioning above the circle */
+    position: absolute;
+    bottom: 20px;
+    /* Push up */
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* Logic: Hidden by default (Low Zoom) */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: auto;
+    /* Allow hovering text if needed */
+}
+
+/* Show Name when Map Wrapper has high-zoom class */
+.map-high-zoom .marker-name {
+    opacity: 1;
+}
+
+/* Also allow hover to show name regardless of zoom? User didn't ask, but good UX */
+.leaflet-interactive:hover+.custom-marker-tooltip .marker-name,
+/* This selector is tricky in Leaflet DOM */
+.marker-content:hover .marker-name {
+    opacity: 1;
+}
