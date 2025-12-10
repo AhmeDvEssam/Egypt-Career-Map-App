@@ -8,3 +8,4 @@ requests
 numpy
 gunicorn
 flask-caching
+dash-leaflet
