@@ -211,10 +211,10 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
             map_df = filtered_df.dropna(subset=['Latitude', 'Longitude'])
             map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
             
-            # PERFORMANCE CAP: Limit to 2000 points in Interactive Mode to prevent Railway Timeout
-            if len(map_df) > 2000:
-                print(f"Capping map_df from {len(map_df)} to 2000 for interactive map.")
-                map_df = map_df.head(2000)
+            # PERFORMANCE CAP: Limit to 250 points in Interactive Mode to prevent Railway Timeout
+            if len(map_df) > 250:
+                print(f"Capping map_df from {len(map_df)} to 250 for interactive map.")
+                map_df = map_df.head(250)
             
             # OPTIMIZATION: If a single job is selected (Table Click), skip heavy cluster generation to prevent timeout.
             # Only show the cluster if we are in "Explore Mode" (no single selection focused).
