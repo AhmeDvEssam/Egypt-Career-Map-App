@@ -211,7 +211,9 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         map_df = filtered_df.dropna(subset=['Latitude', 'Longitude'])
         map_df = map_df[(map_df['Latitude'].between(22, 32)) & (map_df['Longitude'].between(25, 37))]
         
-        if not map_df.empty:
+        # OPTIMIZATION: If a single job is selected (Table Click), skip heavy cluster generation to prevent timeout.
+        # Only show the cluster if we are in "Explore Mode" (no single selection focused).
+        if not selected_lat and not map_df.empty:
             map_data = []
             for _, row in map_df.iterrows():
                 try:
