@@ -56,7 +56,10 @@ def update_skills_analysis(companies, cities, categories, work_modes, employment
         filtered_df = filtered_df[filtered_df['In_City'].isin(in_cities)]
     if avg_exp_range and 'Year Of Exp_Avg' in filtered_df.columns:
         min_exp, max_exp = avg_exp_range[0], avg_exp_range[1]
-        filtered_df = filtered_df[(filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)]
+        mask = (filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)
+        if min_exp == 0:
+            mask = mask | filtered_df['Year Of Exp_Avg'].isna()
+        filtered_df = filtered_df[mask]
     if months and 'posted' in filtered_df.columns:
         filtered_df['posted'] = pd.to_datetime(filtered_df['posted'], errors='coerce')
         filtered_df = filtered_df[filtered_df['posted'].dt.month.isin(months)]

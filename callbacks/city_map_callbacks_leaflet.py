@@ -62,7 +62,8 @@ app.clientside_callback(
      Output('city-bar-chart', 'figure'),
      Output('city-map-leaflet', 'children'),
      Output('job-table-container', 'children'),
-     Output('selected-job-link-store', 'data')], 
+     Output('selected-job-link-store', 'data'),
+     Output('full-map-btn-link', 'href')], 
     [Input('sidebar-company-filter', 'value'),
      Input('sidebar-city-filter', 'value'),
      Input('sidebar-category-filter', 'value'),
@@ -109,10 +110,11 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
     if avg_exp_range:
         # Added Avg Exp Filter
         min_exp, max_exp = avg_exp_range
-        filtered_df = filtered_df[
-            (filtered_df['Year Of Exp_Avg'] >= min_exp) & 
-            (filtered_df['Year Of Exp_Avg'] <= max_exp)
-        ]
+        # Include NaNs if min_exp is 0 (default range start)
+        mask = (filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)
+        if min_exp == 0:
+            mask = mask | filtered_df['Year Of Exp_Avg'].isna()
+        filtered_df = filtered_df[mask]
         
     if search_term:
         mask = filtered_df.apply(lambda row: row.astype(str).str.contains(search_term, case=False, na=False).any(), axis=1)
@@ -165,18 +167,38 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
                             if p_incity and p_incity.lower() != 'nan': p_city += f" - {p_incity}"
                             p_link = str(sel_row.get('Link', '#'))
                             
+                            p_link = str(sel_row.get('Link', '#'))
+                            
+                            # Enhanced Popup Content
+                            p_status = str(sel_row.get('job_status', 'Open'))
+                            p_work = str(sel_row.get('Work Mode', '-'))
+                            p_emp = str(sel_row.get('Employment Type', '-'))
+                            p_level = str(sel_row.get('Career Level', '-'))
+                            p_exp = str(sel_row.get('Year Of Exp_Avg', '-'))
+                            
                             selected_popup = f"""
-                            <div style="font-family: 'Segoe UI', sans-serif; min-width: 250px; font-size: 14px;">
-                                <div style="font-weight: bold; font-size: 16px; color: #b71c1c; margin-bottom: 5px;">{p_title}</div>
-                                <div style="font-size: 14px; color: #555; margin-bottom: 2px;">{p_comp}</div>
-                                <div style="font-size: 13px; color: #777; margin-bottom: 8px;">{p_city}</div>
-                                <a href="{p_link}" target="_blank" style="display: inline-block; text-decoration: none; color: white; background-color: #c62828; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px;">
-                                   Visit Job Link <span style="margin-left:5px;">&#8594;</span>
+                            <div style="font-family: 'Segoe UI', sans-serif; min-width: 350px; padding: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                    <div style="font-weight: 900; font-size: 18px; color: #b71c1c; line-height: 1.2;">{p_title}</div>
+                                    <div style="background: {'#e8f5e9' if p_status=='Open' else '#ffebee'}; color: {'#2e7d32' if p_status=='Open' else '#c62828'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap; margin-left: 10px;">{p_status}</div>
+                                </div>
+                                <div style="font-size: 15px; color: #333; font-weight: 600; margin-bottom: 4px;">{p_comp}</div>
+                                <div style="font-size: 14px; color: #555; margin-bottom: 12px;">📍 {p_city}</div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #444; margin-bottom: 15px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                                    <div>💼 <b>Type:</b> {p_emp}</div>
+                                    <div>🏠 <b>Mode:</b> {p_work}</div>
+                                    <div>📊 <b>Level:</b> {p_level}</div>
+                                    <div>⏳ <b>Exp:</b> {p_exp} Yrs</div>
+                                </div>
+
+                                <a href="{p_link}" target="_blank" style="display: block; text-align: center; text-decoration: none; color: white; background-color: #d32f2f; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 3px 6px rgba(183, 28, 28, 0.3); transition: background-color 0.2s;">
+                                   Visit Job Link on Wuzzuf <span style="margin-left:5px;">&#8594;</span>
                                 </a>
                             </div>
                             """
             except: pass
-
+            
         # Tiles Logic
         if map_style == 'dark': tiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'; attr = '&copy; OpenStreetMap &copy; CARTO'
         elif map_style == 'satellite': tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'; attr = 'Tiles &copy; Esri'
@@ -229,7 +251,7 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         if selected_lat and selected_lon and selected_popup:
             folium.Marker(
                 location=[selected_lat, selected_lon],
-                popup=folium.Popup(selected_popup, max_width=300),
+                popup=folium.Popup(selected_popup, max_width=400, show=True),
                 icon=folium.Icon(color='red', icon='info-sign')
             ).add_to(m)
 
@@ -361,6 +383,22 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
 
     # KPIs
     total_jobs = len(filtered_df)
+    # ... (Keep existing KPI logic) ...
+    
+    # Construct Full Map Link with Filters
+    import urllib.parse
+    query_params = {}
+    if companies: query_params['company'] = companies
+    if cities: query_params['city'] = cities
+    if categories: query_params['category'] = categories
+    if work_modes: query_params['work_mode'] = work_modes
+    if search_term: query_params['search'] = search_term
+    
+    full_map_href = "/full-map"
+    if query_params:
+        full_map_href += "?" + urllib.parse.urlencode(query_params, doseq=True)
+
+
     city_counts = filtered_df['City'].value_counts()
     top_city = city_counts.index[0] if len(city_counts) > 0 else "N/A"
     avg_jobs = round(city_counts.mean(), 1) if len(city_counts) > 0 else 0
@@ -555,7 +593,8 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
             no_update, # Bar Chart (Prevent reload!)
             map_output, # Map (Update zoom/markers or Iframe)
             no_update, # Job Table (Keep persistence!)
-            link_data  # Store: Update with link if single view
+            link_data,  # Store: Update with link if single view
+            no_update # Full Map Link
         )
 
     return (
@@ -563,7 +602,9 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
         top_city,
         f"{avg_jobs:,}",
         city_bar_fig,
-        map_output,
+        map_output, # Use unified map_output
         job_table,
-        link_data 
+        link_data,
+        full_map_href
     )
+

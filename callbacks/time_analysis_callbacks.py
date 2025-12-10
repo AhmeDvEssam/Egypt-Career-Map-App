@@ -54,7 +54,10 @@ def update_time_analysis(companies, cities, categories, work_modes, employment_t
         # Avg Years of Experience filter
         if avg_exp_range and 'Year Of Exp_Avg' in filtered_df.columns:
             min_exp, max_exp = avg_exp_range[0], avg_exp_range[1]
-            filtered_df = filtered_df[(filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)]
+            mask = (filtered_df['Year Of Exp_Avg'] >= min_exp) & (filtered_df['Year Of Exp_Avg'] <= max_exp)
+            if min_exp == 0:
+                mask = mask | filtered_df['Year Of Exp_Avg'].isna()
+            filtered_df = filtered_df[mask]
         
         # Month filter (applied before date range to avoid conflicts)
         if months and 'posted' in filtered_df.columns:
