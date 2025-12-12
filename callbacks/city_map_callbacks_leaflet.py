@@ -214,13 +214,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # If trigger is ONLY table pagination, we do NOT need to regenerate the Map (saves 2s+ latency).
         # We must assume 'filtered_df' is consistent because filters didn't change (only table page changed).
         # ---------------------------------------------------------
-        if triggered_id == 'jobs-table' and (not ctx.triggered or 'page_current' in ctx.triggered[0]['prop_id']):
-             # We skip Map Generation Logic (Branch A/B) entirely!
-             # We SKIP KPI calculation (as they don't change on page flip)
-             # We JUMP straight to Table Slicing logic (Line 590+) by skipping the middle block?
-             # Actually, simpler to just returning here?
-             # NO, we need to run the Table Logic (Line 566+) to generate the new slice.
-             pass 
+        # ---------------------------------------------------------
+        if triggered_id == 'jobs-table':
+             is_pagination = 'page_current' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
+             is_active_cell = 'active_cell' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
+             
+             if is_pagination and not is_active_cell:
+                 pass # Skip Logic
+        # ---------------------------------------------------------
              
         map_output = no_update # Default if skipped
         link_data = None 
@@ -232,7 +233,12 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         # Determine if we need to run Map Logic
         run_map_logic = True
-        if triggered_id == 'jobs-table' and (not ctx.triggered or 'page_current' in ctx.triggered[0]['prop_id']):
+        # OPTIMIZATION: Only skip if PAGE changed but ACTIVE CELL did NOT change.
+        # If active_cell changed (e.g. Nav Button), we MUST run map logic to zoom/center.
+        is_pagination = 'page_current' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
+        is_active_cell = 'active_cell' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
+        
+        if triggered_id == 'jobs-table' and is_pagination and not is_active_cell:
              run_map_logic = False
              
         # --- BRANCH A: INTERACTIVE (FOLIUM) MODE ---

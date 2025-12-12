@@ -158,9 +158,12 @@ def city_map_layout():
                 },
                 style_data={
                     'backgroundColor': 'white',
-                    'color': '#444',
-                    'borderBottom': '1px solid #f0f0f0'
+                    'color': 'black',
+                    'borderBottom': '1px solid #eee',
+                    'fontFamily': 'Segoe UI, sans-serif',
+                    'fontSize': '13px'
                 },
+                css=[{'selector': '.dash-table-tooltip', 'rule': 'display: none !important'}],
                 style_cell={
                     'textAlign': 'left',
                     'padding': '15px', # Generous padding like inspiration
