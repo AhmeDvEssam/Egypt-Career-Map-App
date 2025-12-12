@@ -200,8 +200,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
         # DEFINITION MOVED TO TOP SCOPE TO PREVENT NameError
         # Added 'How Long Ago' to ensure it survives for the Table Data
-        # SIMPLIFIED COLUMNS (User Request 2025-12-12)
-        final_display_cols = ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status', 'Link', 'Latitude', 'Longitude', 'Image_link']
+        # RESTORED COLUMNS (User Request Step 11552: Popup needs these!)
+        final_display_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'Image_link']
 
         # 2. Determine trigger
         ctx = callback_context
@@ -591,7 +591,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # ---------------------------------------------------------
         
         # Job Table - USING CORRECT COLUMN NAMES
-        req_cols = ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status', 'Link', 'Latitude', 'Longitude', 'Image_link']
+        req_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 
+                   'Career Level', 'Year Of Exp_Avg', 'posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'How Long Ago', 'Date Posted', 'Image_link']
         
         for c in req_cols:
             if c not in filtered_df.columns:

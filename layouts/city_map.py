@@ -141,7 +141,7 @@ def city_map_layout():
                 id='jobs-table', 
                 columns=[
                     {"name": i.replace('_', ' '), "id": i, "presentation": "markdown"} if i in ["Job Title"] else {"name": i.replace('_', ' '), "id": i} 
-                    for i in ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status']
+                    for i in ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status']
                 ],
                 data=[], 
                 page_action='custom', 
