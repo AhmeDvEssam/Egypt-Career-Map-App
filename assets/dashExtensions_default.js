@@ -8,6 +8,7 @@ window.dashExtensions = Object.assign({}, window.dashExtensions, {
             return marker;
         },
         renderMarker: function (feature, latlng) {
+            console.log("DEBUG: renderMarker called", feature);
             const props = feature.properties;
             const marker = L.marker(latlng);
 
