@@ -135,7 +135,7 @@ def city_map_layout():
                     for i in ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status']
                 ],
                 data=[], 
-                page_action='native', 
+                page_action='custom', 
                 page_current=0, 
                 page_size=15,
                 style_table={'overflowX': 'auto', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.05)'},

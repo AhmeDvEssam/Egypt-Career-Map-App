@@ -601,10 +601,13 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         if triggered_id != 'jobs-table':
             current_page = 0
             
-        # FULL DATASET: Send ALL rows as requested.
-        table_df = target_df[table_cols].copy()
-        # total_pages unused in native mode variable assignment kept for safety if needed logically later (unused)
-        total_pages = 0
+        # SERVER-SIDE PAGINATION: Slice only the visible rows
+        start_idx = current_page * page_size
+        end_idx = start_idx + page_size
+        table_df = target_df[table_cols].iloc[start_idx:end_idx].copy()
+        
+        # Calculate Total Pages for the Paginator
+        total_pages = math.ceil(len(target_df) / page_size)
         
         if 'posted' in table_df.columns:
             table_df['Date Posted'] = pd.to_datetime(table_df['posted'], errors='coerce').dt.strftime('%Y-%m-%d')
@@ -701,9 +704,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             tooltip_delay=0,
             tooltip_duration=None,
 
-            page_action='native',
-            page_current=0,
-            page_size=15,
+            page_action='custom',
+            page_current=current_page,
+            page_size=page_size,
+            page_count=total_pages,
             style_table={'overflowX': 'auto', 'borderRadius': '8px', 'border': '1px solid #444' if is_dark else '1px solid #ddd'},
             style_cell={
                 'textAlign': 'left',
@@ -876,7 +880,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             # TRIGGER SHOW
             popup_trigger = str(time.time())
 
-        if triggered_id == 'jobs-table':
+        # BRANCH C: Table Interaction (Row Click vs Pagination)
+        # If trigger is Table but NOT Pagination, we return no_update for table data to avoid reset.
+        # But if trigger IS Pagination (page_current), we MUST fall through to generate new data slice.
+        if triggered_id == 'jobs-table' and (not ctx.triggered or 'page_current' not in ctx.triggered[0]['prop_id']):
             return (
                 no_update, # Total Jobs
                 no_update, # Top City
