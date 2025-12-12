@@ -580,6 +580,16 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 },
                                 'properties': props
                             })
+                    
+                    print(f"DEBUG: Branch B Features Count: {len(features)}")
+                    if len(features) > 0: print(f"DEBUG: Sample Feature: {features[0]}")
+                    else: print("DEBUG: Features list is EMPTY!")
+                    
+                    if features:
+                        geojson_data = {
+                            'type': 'FeatureCollection',
+                            'features': features
+                        }
 
                     if features:
                         geojson_data = {
