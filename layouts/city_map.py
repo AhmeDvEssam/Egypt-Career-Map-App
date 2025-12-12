@@ -119,7 +119,9 @@ def city_map_layout():
             
             # Store for Total Jobs Count (Used for Navigation Logic)
             dcc.Store(id='total-jobs-count-store', data=0),
-
+            # Store to signal Nav Button click (to suppress popup)
+            dcc.Store(id='nav-action-store', data={'ts': 0}),
+            
         ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '15px', 'flexWrap': 'wrap', 'gap': '10px'}),
 
 

@@ -136,12 +136,13 @@ app.clientside_callback(
      Input('jobs-table', 'active_cell'),
      Input('map-mode-store', 'data'),
      Input('jobs-table', 'page_current'),
-     Input('jobs-table', 'page_size')],
+     Input('jobs-table', 'page_size'),
+     Input('nav-action-store', 'data')],
     [State('jobs-table', 'data')]
 )
 def update_city_map(companies, cities, categories, work_modes, job_statuses, employment_types, 
                     career_levels, education_levels, avg_exp_range, search_term, map_style, theme, 
-                    active_cell, map_mode, page_current, page_size, current_table_data):
+                    active_cell, map_mode, page_current, page_size, nav_action_data, current_table_data):
     
     try:
         print("DEBUG: update_city_map triggered")
@@ -206,6 +207,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # 2. Determine trigger (MOVED TO TOP TO SUPPORT SLICING LOGIC)
         ctx = callback_context
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
+        
+        # Check for Nav Button Trigger to SUPPRESS POPUP
+        triggered_props = [t['prop_id'] for t in ctx.triggered] if ctx.triggered else []
+        is_nav_trigger = any('nav-action-store' in p for p in triggered_props)
+        
+        # If nav trigger, we ensure we don't accidentally consider it 'active_cell' manual click for popup purposes
+        # But 'is_active_cell' below logic handles Map skipping. We want Map Zoom, so 'active_cell' logic is fine.
+        # We just need to suppress the 'click-popup' generation later.
 
         # ------------------------------------------------------------------
         # MOVED LOGIC TO TOP: PRE-CALCULATE TABLE SLICE FOR MAP SYNC
@@ -913,8 +922,11 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 }
             except: pass
             
-            # TRIGGER SHOW
-            popup_trigger = str(time.time())
+            # TRIGGER SHOW (ONLY If NOT Nav Trigger)
+            if not is_nav_trigger:
+                popup_trigger = str(time.time())
+            else:
+                popup_trigger = no_update
 
         # BRANCH C: Table Interaction (Row Click vs Pagination)
         # If trigger is Table but NOT Pagination, we return no_update for table data to avoid reset.
@@ -1001,7 +1013,8 @@ app.clientside_callback(
 # NAV BUTTON LOGIC
 @app.callback(
     [Output('jobs-table', 'page_current', allow_duplicate=True),
-     Output('jobs-table', 'active_cell', allow_duplicate=True)],
+     Output('jobs-table', 'active_cell', allow_duplicate=True),
+     Output('nav-action-store', 'data')],
     [Input('btn-next-job', 'n_clicks'), Input('btn-prev-job', 'n_clicks')],
     [State('jobs-table', 'page_current'), 
      State('jobs-table', 'page_size'),
@@ -1011,7 +1024,7 @@ app.clientside_callback(
 )
 def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_jobs):
     ctx = callback_context
-    if not ctx.triggered: return no_update, no_update
+    if not ctx.triggered: return no_update, no_update, no_update
     
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
@@ -1048,4 +1061,7 @@ def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_j
         'column_id': 'Job Title'
     }
     
-    return new_page, new_active_cell
+    # Signal Nav Action
+    nav_data = {'ts': time.time(), 'action': 'nav'}
+    
+    return new_page, new_active_cell, nav_data
