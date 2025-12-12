@@ -203,6 +203,58 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # RESTORED COLUMNS (User Request Step 11552: Popup needs these!)
         final_display_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'Image_link']
 
+        # ------------------------------------------------------------------
+        # MOVED LOGIC TO TOP: PRE-CALCULATE TABLE SLICE FOR MAP SYNC
+        # ------------------------------------------------------------------
+        req_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 
+                   'Career Level', 'Year Of Exp_Avg', 'posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'How Long Ago', 'Date Posted', 'Image_link']
+        
+        for c in req_cols:
+            if c not in filtered_df.columns:
+                filtered_df[c] = None
+
+        table_cols = req_cols 
+        target_df = filtered_df
+        
+        import math
+        current_page = 0
+        if triggered_id == 'jobs-table' and page_current is not None:
+             current_page = page_current
+        
+        if page_size is None: page_size = 15
+        
+        # Reset page to 0 if filters changed (triggered_id is NOT jobs-table)
+        if triggered_id != 'jobs-table':
+            current_page = 0
+            
+        # SERVER-SIDE PAGINATION: Slice only the visible rows
+        start_idx = current_page * page_size
+        end_idx = start_idx + page_size
+        table_df = target_df[table_cols].iloc[start_idx:end_idx].copy()
+        
+        # Calculate Total Pages for the Paginator
+        total_pages = math.ceil(len(target_df) / page_size)
+        
+        if 'posted' in table_df.columns:
+            table_df['Date Posted'] = pd.to_datetime(table_df['posted'], errors='coerce').dt.strftime('%Y-%m-%d')
+        else:
+            table_df['Date Posted'] = ""
+
+        # Job Title as Link Logic
+        def make_job_link_inner(row):
+            title = str(row['Job Title'])
+            link = row['Link']
+            if pd.notna(link) and len(str(link)) > 5:
+                return f"[{title}]({link})"
+            return title
+
+        if 'Link' in table_df.columns and 'Job Title' in table_df.columns:
+            table_df['Job Title'] = table_df.apply(make_job_link_inner, axis=1)
+
+        # Convert to records for Map Logic usage
+        current_table_records = table_df.to_dict('records')
+        # ------------------------------------------------------------------
+
         # 2. Determine trigger
         ctx = callback_context
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
@@ -233,10 +285,11 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         # Determine if we need to run Map Logic
         run_map_logic = True
+        
         # OPTIMIZATION: Only skip if PAGE changed but ACTIVE CELL did NOT change.
-        # If active_cell changed (e.g. Nav Button), we MUST run map logic to zoom/center.
-        is_pagination = 'page_current' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
-        is_active_cell = 'active_cell' in ctx.triggered[0]['prop_id'] if ctx.triggered else False
+        triggered_props = [t['prop_id'] for t in ctx.triggered] if ctx.triggered else []
+        is_pagination = any('page_current' in p for p in triggered_props)
+        is_active_cell = any('active_cell' in p for p in triggered_props)
         
         if triggered_id == 'jobs-table' and is_pagination and not is_active_cell:
              run_map_logic = False
@@ -244,17 +297,18 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # --- BRANCH A: INTERACTIVE (FOLIUM) MODE ---
         if map_mode == 'interactive' and run_map_logic:
             center_location = [26.8, 30.8]
+            # ... (Rest of Branch A variables) ...
             zoom_level = 6
             selected_lat = None
             selected_lon = None
             selected_popup = None
             
             # Check Table Trigger (Branch A specific logic)
-            if triggered_id == 'jobs-table' and active_cell and current_table_data:
+            if triggered_id == 'jobs-table' and active_cell and current_table_records:
                 try:
                     row_idx = active_cell['row']
-                    if row_idx < len(current_table_data):
-                        sel_row = current_table_data[row_idx]
+                    if row_idx < len(current_table_records):
+                        sel_row = current_table_records[row_idx]
                         if sel_row.get('Latitude') and sel_row.get('Longitude'):
                             slat = float(sel_row['Latitude'])
                             slon = float(sel_row['Longitude'])
@@ -410,12 +464,12 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             is_single_view = False
             row_idx_str = "0"
 
-            # Table click handler
-            if triggered_id == 'jobs-table' and active_cell and current_table_data:
+            # Table click handler using NEW RECORDS
+            if triggered_id == 'jobs-table' and active_cell and current_table_records:
                 try:
                     row_idx = active_cell['row']
-                    if row_idx < len(current_table_data):
-                        selected_row = current_table_data[row_idx]
+                    if row_idx < len(current_table_records):
+                        selected_row = current_table_records[row_idx]
                         row_idx_str = f"{row_idx}_{uuid.uuid4()}" # Unique ID
                         
                         if selected_row.get('Latitude') and selected_row.get('Longitude'):
@@ -593,67 +647,9 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         apply_chart_styling(city_bar_fig, is_horizontal_bar=True, theme=theme)
         
         # ---------------------------------------------------------
-        # RESTORED LOGIC FOR TABLE DATAFRAME AND TOOLTIPS
+        # TABLE LOGIC MOVED TO TOP. 
+        # Here we just use the pre-calculated 'table_df' and 'total_pages'
         # ---------------------------------------------------------
-        
-        # Job Table - USING CORRECT COLUMN NAMES
-        req_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 
-                   'Career Level', 'Year Of Exp_Avg', 'posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'How Long Ago', 'Date Posted', 'Image_link']
-        
-        for c in req_cols:
-            if c not in filtered_df.columns:
-                filtered_df[c] = None
-
-        table_cols = req_cols 
-        
-        # PAGINATION LOGIC: Slice for the table
-        # We allow the table to show ALL filtered jobs (even those without coords), or should we sync?
-        # User said "All jobs displayed on map... number equals KPI".
-        # If we filter Table to map_df_all, we lose 400 jobs completely.
-        # Let's keep Table as "All Data" (filtered_df) but use Pagination to prevent crash.
-        # But if KPI says 6915 and Table says 7315, user might complain.
-        # Given the strict "Equal" requirement, let's filter Table to map_df_all too.
-        
-        # User said "return the Total Jobs KPI to 7315 and show the SAME number of jobs on the map".
-        # We cannot show 7315 on map (400 missing coords), but we MUST show 7315 in the table.
-        # So we switch back to filtered_df for the table source.
-        
-        target_df = filtered_df # Back to Full Data (7315)
-        
-        import math
-        current_page = 0
-        if triggered_id == 'jobs-table' and page_current is not None:
-             current_page = page_current
-        
-        if page_size is None: page_size = 15
-        
-        # Reset page to 0 if filters changed (triggered_id is NOT jobs-table)
-        if triggered_id != 'jobs-table':
-            current_page = 0
-            
-        # SERVER-SIDE PAGINATION: Slice only the visible rows
-        start_idx = current_page * page_size
-        end_idx = start_idx + page_size
-        table_df = target_df[table_cols].iloc[start_idx:end_idx].copy()
-        
-        # Calculate Total Pages for the Paginator
-        total_pages = math.ceil(len(target_df) / page_size)
-        
-        if 'posted' in table_df.columns:
-            table_df['Date Posted'] = pd.to_datetime(table_df['posted'], errors='coerce').dt.strftime('%Y-%m-%d')
-        else:
-            table_df['Date Posted'] = ""
-
-        # Job Title as Link Logic
-        def make_job_link(row):
-            title = str(row['Job Title'])
-            link = row['Link']
-            if pd.notna(link) and len(str(link)) > 5:
-                return f"[{title}]({link})"
-            return title
-
-        if 'Link' in table_df.columns and 'Job Title' in table_df.columns:
-            table_df['Job Title'] = table_df.apply(make_job_link, axis=1)
 
         # Tooltip data generation - OPTIMIZED: DISABLED AS PER USER REQUEST
         tooltip_data = []
