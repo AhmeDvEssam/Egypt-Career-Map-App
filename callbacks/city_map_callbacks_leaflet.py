@@ -401,48 +401,62 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 for c in cols: 
                     if c not in map_df.columns: map_df[c] = ""
                 
-                for lat, lon, title, comp, city, link, in_city, img_link in zip(
-                    map_df['Latitude'], map_df['Longitude'], map_df['Job Title'], 
-                    map_df['Company'], map_df['City'], map_df['Link'], map_df['In_City'], map_df['Image_link']
+                # CLIENT-SIDE RENDERING OPTIMIZATION
+                # Instead of building Heavy XML locally, we send Raw Data arrays.
+                # Data Schema: [Lat, Lon, Title, Company, City, Link, Img_Link]
+                
+                # Pre-process columns to avoid overhead
+                titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
+                companies = map_df['Company'].astype(str).str.replace("'", "", regex=False).fillna("")
+                cities = map_df['City'].astype(str).fillna("")
+                in_cities = map_df['In_City'].astype(str).fillna("")
+                links = map_df['Link'].astype(str).fillna("#")
+                imgs = map_df['Image_link'].astype(str).fillna("")
+                
+                # Fast List Construction
+                map_data = []
+                # Use simple iteration for speed
+                for lat, lon, t, c, city, incity, l, i in zip(
+                    map_df['Latitude'], map_df['Longitude'], titles, companies, cities, in_cities, links, imgs
                 ):
-                    
-                    # NO TRY-EXCEPT: Handle NaN explicitly
-                    job_title = str(title).replace("'", "") if pd.notna(title) else "Job"
-                    company = str(comp).replace("'", "") if pd.notna(comp) else ""
-                    city_str = str(city) if pd.notna(city) else ""
-                    in_city_str = str(in_city) if pd.notna(in_city) else ""
-                    
-                    if in_city_str and in_city_str.lower() not in ['nan', 'none', '']:
-                         city_str = f"{city_str} - {in_city_str}"
-                    
-                    link_val = str(link) if pd.notna(link) else "#"
-                    
-                    # Logo HTML
-                    # Logo HTML
-                    logo_html = ""
-                    if img_link and len(str(img_link)) > 10:
-                        logo_html = f'<img src="{img_link}" style="height: 35px; width: auto; max-width: 80px; margin-right: 10px; object-fit: contain;">'
-
-                    # Popup Content (Enhanced with Logo)
-                    popup_html = f"""
-                    <div style="font-family: 'Segoe UI', sans-serif; min-width: 250px; font-size: 14px;">
-                        <div style="font-weight: bold; font-size: 16px; color: #111; margin-bottom: 5px;">{job_title}</div>
-                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                            {logo_html}
-                            <div style="font-size: 14px; color: #555;">{company}</div>
-                        </div>
-                        <div style="font-size: 13px; color: #777; margin-bottom: 8px;">{city_str}</div>
-                        <a href="{link_val}" target="_blank" style="display: inline-block; text-decoration: none; color: white; background-color: #0066CC; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px;">
-                           Visit Job Link
-                        </a>
-                    </div>
-                    """
-                    map_data.append([lat, lon, link_val, popup_html])
-                    
+                     # Handle City Logic
+                     c_str = city
+                     if incity and incity.lower() not in ['nan', 'none', '']:
+                         c_str = f"{city} - {incity}"
+                     
+                     # Append Raw Props
+                     map_data.append([lat, lon, t, c, c_str, l, i])
+                     
+                # JS Callback to Render HTML on Client
                 callback = """
                 function (row) {
                     var marker = L.marker(new L.LatLng(row[0], row[1]));
-                    marker.bindPopup(row[3]); 
+                    
+                    // Client-Side Template Construction
+                    var title = row[2];
+                    var company = row[3];
+                    var city = row[4];
+                    var link = row[5];
+                    var img = row[6];
+                    
+                    var logo_html = "";
+                    if (img && img.length > 10) {
+                        logo_html = '<img src="' + img + '" style="height: 35px; width: auto; max-width: 80px; margin-right: 10px; object-fit: contain;">';
+                    }
+                    
+                    var html = '<div style="font-family: \\'Segoe UI\\', sans-serif; min-width: 250px; font-size: 14px;">' +
+                        '<div style="font-weight: bold; font-size: 16px; color: #111; margin-bottom: 5px;">' + title + '</div>' +
+                        '<div style="display: flex; align-items: center; margin-bottom: 5px;">' +
+                             logo_html +
+                            '<div style="font-size: 14px; color: #555;">' + company + '</div>' +
+                        '</div>' +
+                        '<div style="font-size: 13px; color: #777; margin-bottom: 8px;">' + city + '</div>' +
+                        '<a href="' + link + '" target="_blank" style="display: inline-block; text-decoration: none; color: white; background-color: #0066CC; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 13px;">' +
+                           'Visit Job Link' +
+                        '</a>' +
+                    '</div>';
+                    
+                    marker.bindPopup(html); 
                     return marker;
                 }
                 """
@@ -528,6 +542,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
+                # OPTIMIZED: CLIENT-SIDE RENDERING
                 if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
                     features = []
                     
@@ -536,27 +551,26 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     for c in cols: 
                         if c not in map_df.columns: map_df[c] = ""
                     
-                    # Iterate to build features (1 per Job)
-                    for lat, lon, title, comp, city, in_city, link in zip(
-                        map_df['Latitude'], map_df['Longitude'], map_df['Job Title'], 
-                        map_df['Company'], map_df['City'], map_df['In_City'], map_df['Link']
-                    ):
+                    # Iterate to build features (1 per Job) - RAW DATA ONLY
+                    # Clean data first for speed
+                    titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
+                    companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
+                    cities = map_df['City'].astype(str).fillna("")
+                    in_cities = map_df['In_City'].astype(str).fillna("")
+                    links = map_df['Link'].astype(str).fillna("#")
+                    lats = map_df['Latitude']
+                    lons = map_df['Longitude']
+                    
+                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
                         if pd.notna(lat) and pd.notna(lon):
-                            # Tooltip Content
-                            title_clean = str(title).replace("'", "")
-                            comp_clean = str(comp).replace("'", "")
-                            city_str = str(city)
-                            if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
-                                city_str = f"{city_str} | {str(in_city)}"
-                            
-                            tooltip_html = f"""
-                            <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
-                                <div style="font-weight: bold; font-size: 14px; color: #d32f2f; margin-bottom: 3px;">{title_clean}</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 3px;">{comp_clean}</div>
-                                <div style="font-size: 12px; color: #666; margin-bottom: 6px;">{city_str}</div>
-                                <div style="font-size: 11px; color: #0066CC; font-weight: bold;">Click to Visit Job Link ➜</div>
-                            </div>
-                            """
+                            # Minimal Properties Payload
+                            props = {
+                                'title': title,
+                                'company': comp,
+                                'city': city,
+                                'in_city': in_city,
+                                'link': link
+                            }
                             
                             features.append({
                                 'type': 'Feature',
@@ -564,29 +578,41 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                     'type': 'Point',
                                     'coordinates': [float(lon), float(lat)] 
                                 },
-                                'properties': {
-                                    'tooltip': tooltip_html,
-                                    'link': str(link) if pd.notna(link) else "#"
-                                }
+                                'properties': props
                             })
-                    
-                    geojson_data = {
-                        'type': 'FeatureCollection',
-                        'features': features
-                    }
-                    
-                    # Add GeoJSON Layer with Clustering
-                    # zoomToBoundsOnClick=True is default for cluster=True
-                    ns = Namespace("window")
-                    markers.append(dl.GeoJSON(
-                        data=geojson_data, 
-                        cluster=True, 
-                        zoomToBoundsOnClick=True,
-                        options=dict(onEachFeature=ns("bindTooltip")),
-                        id="job-clusters"
-                    ))
 
-            # Leaflet Output
+                    if features:
+                        geojson_data = {
+                            'type': 'FeatureCollection',
+                            'features': features
+                        }
+
+                # Create GeoJSON Layer with Client-Side Rendering
+                ns = Namespace("dashExtensions", "default")
+                
+                children = [
+                    dl.GeoJSON(
+                        data=geojson_data,
+                        cluster=True,
+                        zoomToBoundsOnClick=True,
+                        options=dict(pointToLayer=ns("renderMarker")), # Use JS Function
+                        id="city-geojson-layer"
+                    )
+                ]
+                
+                map_output = None
+                # Check for existing children to preserve context if needed? NO, we rebuild.
+                
+                map_output = dl.Map(
+                    center=center_location,
+                    zoom=zoom_level,
+                    children=[
+                        dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+                        *children
+                    ],
+                    style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
+                    id='city-map-leaflet-internal'
+                )
             map_styles = {
                 'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                 'positron': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
