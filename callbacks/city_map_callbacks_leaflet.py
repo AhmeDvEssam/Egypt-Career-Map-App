@@ -203,6 +203,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # RESTORED COLUMNS (User Request Step 11552: Popup needs these!)
         final_display_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'Image_link']
 
+        # 2. Determine trigger (MOVED TO TOP TO SUPPORT SLICING LOGIC)
+        ctx = callback_context
+        triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
+
         # ------------------------------------------------------------------
         # MOVED LOGIC TO TOP: PRE-CALCULATE TABLE SLICE FOR MAP SYNC
         # ------------------------------------------------------------------
@@ -255,9 +259,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         current_table_records = table_df.to_dict('records')
         # ------------------------------------------------------------------
 
-        # 2. Determine trigger
-        ctx = callback_context
-        triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
+        # ------------------------------------------------------------------
 
         map_output = None
         
