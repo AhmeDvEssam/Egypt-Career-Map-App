@@ -206,6 +206,21 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
 
         map_output = None
+        
+        # ---------------------------------------------------------
+        # OPTIMIZATION: EARLY RETURN FOR PAGINATION
+        # If trigger is ONLY table pagination, we do NOT need to regenerate the Map (saves 2s+ latency).
+        # We must assume 'filtered_df' is consistent because filters didn't change (only table page changed).
+        # ---------------------------------------------------------
+        if triggered_id == 'jobs-table' and (not ctx.triggered or 'page_current' in ctx.triggered[0]['prop_id']):
+             # We skip Map Generation Logic (Branch A/B) entirely!
+             # We SKIP KPI calculation (as they don't change on page flip)
+             # We JUMP straight to Table Slicing logic (Line 590+) by skipping the middle block?
+             # Actually, simpler to just returning here?
+             # NO, we need to run the Table Logic (Line 566+) to generate the new slice.
+             pass 
+             
+        map_output = no_update # Default if skipped
         link_data = None 
         
         # 3. Calculate Map Data GLOBALLY (for Consistency)
@@ -213,8 +228,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         map_df_all = filtered_df.dropna(subset=['Latitude', 'Longitude'])
         map_df_all = map_df_all[(map_df_all['Latitude'].between(22, 32)) & (map_df_all['Longitude'].between(25, 37))]
         
+        # Determine if we need to run Map Logic
+        run_map_logic = True
+        if triggered_id == 'jobs-table' and (not ctx.triggered or 'page_current' in ctx.triggered[0]['prop_id']):
+             run_map_logic = False
+             
         # --- BRANCH A: INTERACTIVE (FOLIUM) MODE ---
-        if map_mode == 'interactive':
+        if run_map_logic:
+            if map_mode == 'interactive':
             center_location = [26.8, 30.8]
             zoom_level = 6
             selected_lat = None
@@ -372,7 +393,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             )
 
         # --- BRANCH B: FAST (LEAFLET) MODE ---
-        else:
+        elif run_map_logic:
             # Logic variables with defaults
             highlight_lat = None
             highlight_lon = None
