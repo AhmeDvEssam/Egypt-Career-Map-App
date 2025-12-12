@@ -405,19 +405,19 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # Instead of building Heavy XML locally, we send Raw Data arrays.
                 # Data Schema: [Lat, Lon, Title, Company, City, Link, Img_Link]
                 
-                # Pre-process columns to avoid overhead
-                titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
-                companies = map_df['Company'].astype(str).str.replace("'", "", regex=False).fillna("")
-                cities = map_df['City'].astype(str).fillna("")
-                in_cities = map_df['In_City'].astype(str).fillna("")
-                links = map_df['Link'].astype(str).fillna("#")
-                imgs = map_df['Image_link'].astype(str).fillna("")
+                # Pre-process columns to avoid overhead - RENAMED TO AVOID SHADOWING
+                titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
+                companies_series = map_df['Company'].astype(str).str.replace("'", "", regex=False).fillna("")
+                cities_series = map_df['City'].astype(str).fillna("")
+                in_cities_series = map_df['In_City'].astype(str).fillna("")
+                links_series = map_df['Link'].astype(str).fillna("#")
+                imgs_series = map_df['Image_link'].astype(str).fillna("")
                 
                 # Fast List Construction
                 map_data = []
                 # Use simple iteration for speed
                 for lat, lon, t, c, city, incity, l, i in zip(
-                    map_df['Latitude'], map_df['Longitude'], titles, companies, cities, in_cities, links, imgs
+                    map_df['Latitude'], map_df['Longitude'], titles_series, companies_series, cities_series, in_cities_series, links_series, imgs_series
                 ):
                      # Handle City Logic
                      c_str = city
@@ -553,15 +553,15 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     
                     # Iterate to build features (1 per Job) - RAW DATA ONLY
                     # Clean data first for speed
-                    titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
-                    companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
-                    cities = map_df['City'].astype(str).fillna("")
-                    in_cities = map_df['In_City'].astype(str).fillna("")
-                    links = map_df['Link'].astype(str).fillna("#")
+                    titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
+                    companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
+                    cities_series = map_df['City'].astype(str).fillna("")
+                    in_cities_series = map_df['In_City'].astype(str).fillna("")
+                    links_series = map_df['Link'].astype(str).fillna("#")
                     lats = map_df['Latitude']
                     lons = map_df['Longitude']
                     
-                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
+                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles_series, companies_series, cities_series, in_cities_series, links_series):
                         if pd.notna(lat) and pd.notna(lon):
                             # Minimal Properties Payload
                             props = {
