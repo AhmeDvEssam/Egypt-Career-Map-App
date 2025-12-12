@@ -234,8 +234,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
              run_map_logic = False
              
         # --- BRANCH A: INTERACTIVE (FOLIUM) MODE ---
-        if run_map_logic:
-            if map_mode == 'interactive':
+        if map_mode == 'interactive' and run_map_logic:
             center_location = [26.8, 30.8]
             zoom_level = 6
             selected_lat = None
