@@ -119,7 +119,8 @@ app.clientside_callback(
      Output('selected-job-link-store', 'data'),
      Output('full-map-btn-link', 'href'),
      Output('click-popup', 'children'),
-     Output('popup-show-trigger', 'data')], 
+     Output('popup-show-trigger', 'data'),
+     Output('total-jobs-count-store', 'data')], 
     [Input('sidebar-company-filter', 'value'),
      Input('sidebar-city-filter', 'value'),
      Input('sidebar-category-filter', 'value'),
@@ -199,7 +200,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
         # DEFINITION MOVED TO TOP SCOPE TO PREVENT NameError
         # Added 'How Long Ago' to ensure it survives for the Table Data
-        final_display_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status', 'Link', 'Latitude', 'Longitude']
+        # SIMPLIFIED COLUMNS (User Request 2025-12-12)
+        final_display_cols = ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status', 'Link', 'Latitude', 'Longitude', 'Image_link']
 
         # 2. Determine trigger
         ctx = callback_context
@@ -539,6 +541,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
         # KPIs - FIXED: User wants KPI to show TOTAL jobs (7315) regardless of map count.
         total_jobs = len(filtered_df)
+        total_jobs_count_for_store = total_jobs # Duplicate for store output
+        
         
         # ... (Keep existing KPI logic) ...
         # Use filtered_df for City Stats? Or Map DF?
@@ -587,8 +591,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         # ---------------------------------------------------------
         
         # Job Table - USING CORRECT COLUMN NAMES
-        req_cols = ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 
-                   'Career Level', 'Year Of Exp_Avg', 'posted', 'job_status', 'Skills', 'Link', 'Latitude', 'Longitude', 'How Long Ago', 'Date Posted', 'Image_link']
+        req_cols = ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status', 'Link', 'Latitude', 'Longitude', 'Image_link']
         
         for c in req_cols:
             if c not in filtered_df.columns:
@@ -645,8 +648,16 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         if 'Link' in table_df.columns and 'Job Title' in table_df.columns:
             table_df['Job Title'] = table_df.apply(make_job_link, axis=1)
 
-        # Tooltip data generation - OPTIMIZED: Only generate for top 50 rows to prevent timeout
+        # Tooltip data generation - OPTIMIZED: DISABLED AS PER USER REQUEST
         tooltip_data = []
+        
+        # def clean_val(val): ... (Logic Disabled)
+        '''
+        def clean_val(val):
+            s = str(val).strip()
+            if not s or s.lower() in ['nan', 'n/a', 'none', 'nat', '']: return None
+            return s
+        '''
         
         def clean_val(val):
             s = str(val).strip()
@@ -916,7 +927,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 link_data,  # Store: Update with link if single view
                 no_update, # Full Map Link
                 popup_children, # Click Popup
-                popup_trigger # Trigger Show
+                popup_trigger, # Trigger Show
+                no_update # Total Jobs Store
             )
 
         return (
@@ -931,7 +943,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             link_data,
             full_map_href,
             popup_children, # Defaults
-            popup_trigger
+            popup_trigger,
+            total_jobs_count_for_store # Return Total Count for Nav Logic
         )
     except Exception as e:
         import traceback
@@ -948,7 +961,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             None,
             "#",
             no_update,
-            no_update
+            no_update,
+            0 # Store
         )
 
 
@@ -977,3 +991,56 @@ app.clientside_callback(
     Output('map-wrapper', 'className'),
     Input('map-zoom-store', 'data')
 )
+
+
+# NAV BUTTON LOGIC
+@app.callback(
+    [Output('jobs-table', 'page_current', allow_duplicate=True),
+     Output('jobs-table', 'active_cell', allow_duplicate=True)],
+    [Input('btn-next-job', 'n_clicks'), Input('btn-prev-job', 'n_clicks')],
+    [State('jobs-table', 'page_current'), 
+     State('jobs-table', 'page_size'),
+     State('jobs-table', 'active_cell'), 
+     State('total-jobs-count-store', 'data')],
+    prevent_initial_call=True
+)
+def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_jobs):
+    ctx = callback_context
+    if not ctx.triggered: return no_update, no_update
+    
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # Defaults
+    if current_page is None: current_page = 0
+    if page_size is None or page_size == 0: page_size = 15
+    if total_jobs is None: total_jobs = 0
+    
+    # Calculate Current Global Index
+    current_row_idx = 0
+    if active_cell and 'row' in active_cell:
+        current_row_idx = active_cell['row']
+        
+    global_index = (current_page * page_size) + current_row_idx
+    
+    # Determine Navigation Direction
+    if button_id == 'btn-next-job':
+        global_index += 1
+    elif button_id == 'btn-prev-job':
+        global_index -= 1
+        
+    # Bounds Check
+    if global_index < 0: global_index = 0
+    if global_index >= total_jobs: global_index = total_jobs - 1
+    
+    # Calculate New Page and Row
+    new_page = global_index // page_size
+    new_row_idx = global_index % page_size
+    
+    # Construct new active_cell
+    new_active_cell = {
+        'row': new_row_idx,
+        'column': 0, 
+        'column_id': 'Job Title'
+    }
+    
+    return new_page, new_active_cell

@@ -110,7 +110,16 @@ def city_map_layout():
                 color="primary",
                 style={'fontWeight':'bold', 'boxShadow':'0 2px 5px rgba(0,0,0,0.2)'}
             ),
+
+            # Navigation Buttons (Previous << | Next >>)
+            dbc.ButtonGroup([
+                dbc.Button("<< Previous", id="btn-prev-job", color="light", n_clicks=0, className="me-1", style={'fontWeight': 'bold', 'border': '1px solid #ccc'}),
+                dbc.Button("Next >>", id="btn-next-job", color="light", n_clicks=0, style={'fontWeight': 'bold', 'border': '1px solid #ccc'}),
+            ], size="md", style={'marginLeft': '20px'}),
             
+            # Store for Total Jobs Count (Used for Navigation Logic)
+            dcc.Store(id='total-jobs-count-store', data=0),
+
         ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center', 'marginBottom': '15px', 'flexWrap': 'wrap', 'gap': '10px'}),
 
 
@@ -132,7 +141,7 @@ def city_map_layout():
                 id='jobs-table', 
                 columns=[
                     {"name": i.replace('_', ' '), "id": i, "presentation": "markdown"} if i in ["Job Title"] else {"name": i.replace('_', ' '), "id": i} 
-                    for i in ['Job Title', 'Company', 'City', 'In_City', 'Work Mode', 'Employment Type', 'Career Level', 'Year Of Exp_Avg', 'Date Posted', 'job_status']
+                    for i in ['Job Title', 'Company', 'City', 'Work Mode', 'Date Posted', 'job_status']
                 ],
                 data=[], 
                 page_action='custom', 
