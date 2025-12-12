@@ -1,0 +1,91 @@
+/* FORCE OVERRIDE FOR TABLE TOOLTIPS */
+/* This file is automatically loaded by Dash */
+
+/* 1. Main Tooltip Container */
+.dash-table-tooltip {
+    background-color: white !important;
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    /* Reduced padding to decrease height */
+    font-family: 'Segoe UI', sans-serif !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+    min-width: 600px !important;
+    /* Increased Width */
+    max-width: 800px !important;
+    width: auto !important;
+    font-size: 14px !important;
+    /* Slightly smaller text for compactness */
+    line-height: 1.4 !important;
+    z-index: 2147483647 !important;
+    /* Max Z-Index */
+    position: absolute !important;
+
+    /* PERSISTENCE MAGIC: Add delay to hiding */
+    transition: opacity 0.3s ease-in-out;
+    transition-delay: 0.5s;
+    /* Stays open for 0.5s after mouse leave, allowing bridge */
+    pointer-events: auto !important;
+    /* Ensure content is clickable */
+}
+
+/* 2. Header (Job Title) - Blue Card Style */
+.dash-table-tooltip h2 {
+    background-color: #0066CC !important;
+    color: white !important;
+    padding: 12px 15px !important;
+    margin: -15px -15px 15px -15px !important;
+    /* Match padding to fill flush */
+    border-radius: 8px 8px 0 0 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    border-bottom: none !important;
+    display: block !important;
+}
+
+/* FORCE ALL CHILDREN OF H2 TO BE WHITE */
+.dash-table-tooltip h2 * {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+/* 3. Link Button - Blue Block */
+.dash-table-tooltip a {
+    color: white !important;
+    background-color: #0066CC !important;
+    padding: 8px 12px !important;
+    text-decoration: none !important;
+    border-radius: 6px !important;
+    display: block !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    margin-top: 10px !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.dash-table-tooltip a:hover {
+    background-color: #004C99 !important;
+}
+
+/* 4. Fix Z-Index layering issues */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner {
+    z-index: 1 !important;
+    /* Low index for table */
+    overflow: visible !important;
+    /* Allow tooltip escape */
+}
+
+/* 5. Ensure Tooltip is on top of everything */
+.dash-tooltip {
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+}
+
+/* Force White Title in Popup */
+.popup-header-title {
+    color: white !important;
+    font-size: 18px !important;
+}

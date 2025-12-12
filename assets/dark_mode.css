@@ -153,3 +153,7 @@ body.dark-mode .Select-option.is-focused {
 }
 
 /* CACHE BUST v3 */
+/* FIX: Force Job Title in Map Popup to be BLACK in Dark Mode */
+body.dark-mode h2.popup-job-title {
+    color: #000000 !important;
+}

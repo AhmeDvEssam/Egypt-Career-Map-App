@@ -55,6 +55,18 @@ def create_sidebar():
                 )
             ], className='filter-group'),
             
+            # Job Status Filter
+            html.Div([
+                html.Label("Job Status"),
+                dcc.Dropdown(
+                    id='sidebar-job-status-filter',
+                    options=[{'label': s, 'value': s} for s in df['job_status'].dropna().unique().tolist()] if 'job_status' in df.columns else [],
+                    multi=True,
+                    value=['Open'], # Default to 'Open' per user request
+                    placeholder='Select Job Status'
+                )
+            ], className='filter-group'),
+            
             # Date Posted Filter
             html.Div([
                 html.Label("Date Posted"),

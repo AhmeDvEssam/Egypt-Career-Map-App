@@ -52,7 +52,7 @@ app.layout = html.Div([
                 # Page links on the right
                 dbc.Nav([
                     dbc.NavItem(dbc.NavLink("Overview", href="/", active="exact")),
-                    dbc.NavItem(dbc.NavLink("City Map", href="/city-map", active="exact")),
+                    dbc.NavItem(dbc.NavLink("Map", href="/city-map", active="exact")),
                     dbc.NavItem(dbc.NavLink("Deep Analysis", href="/deep-analysis", active="exact")),
                     dbc.NavItem(dbc.NavLink("Time Analysis", href="/time-analysis", active="exact")),
                     dbc.NavItem(dbc.NavLink("Skills", href="/skills", active="exact")),

@@ -29,6 +29,7 @@ def load_real_data():
         'Date_Posted': 'posted',
     }
     df.rename(columns=column_mapping, inplace=True)
+    print("DEBUG COLS:", df.columns.tolist())
 
     # posted parsing
     if 'posted' in df.columns:
@@ -85,6 +86,14 @@ def load_real_data():
         df['Link'] = df['Link'].fillna('#').astype(str)
     else:
         df['Link'] = '#'
+
+    # Clean Image_link
+    if 'Image_link' in df.columns:
+        df['Image_link'] = df['Image_link'].fillna('').astype(str)
+        # Replace 'False', 'None' strings with empty
+        df.loc[df['Image_link'].str.lower().isin(['false', 'none', 'nan', '0']), 'Image_link'] = ''
+    else:
+        df['Image_link'] = ''
     
     # Normalize City column
     if 'City' in df.columns:
@@ -462,6 +471,22 @@ def load_real_data():
                 
             df.loc[missing_coords_mask, 'Latitude'] = df.loc[missing_coords_mask, 'City'].apply(get_lat_from_cache)
             df.loc[missing_coords_mask, 'Longitude'] = df.loc[missing_coords_mask, 'City'].apply(get_lon_from_cache)
+
+    # 3. CRITICAL FALLBACK: Force Numeric & Fill Missing
+    # Ensure columns are float. Coerce errors (empty strings, junk) to NaN so we can fill them.
+    if 'Latitude' in df.columns:
+        df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+    if 'Longitude' in df.columns:
+        df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+        
+    # Fill NaN with Cairo + Small Jitter (to prevent perfect overlap)
+    if 'Latitude' in df.columns and 'Longitude' in df.columns:
+        missing_mask = df['Latitude'].isna() | df['Longitude'].isna()
+        n_missing = missing_mask.sum()
+        if n_missing > 0:
+            # Assign Cairo coords with jitter to missing entries
+            df.loc[missing_mask, 'Latitude'] = 30.0444 + np.random.uniform(-0.02, 0.02, size=n_missing)
+            df.loc[missing_mask, 'Longitude'] = 31.2357 + np.random.uniform(-0.02, 0.02, size=n_missing)
 
     return df
 

@@ -19,4 +19,4 @@ if __name__ == '__main__':
     
     # Run server
     # debug=False is important for production/EXE
-    app.run_server(debug=False, port=8050)
+    app.run(debug=False, port=8050)
