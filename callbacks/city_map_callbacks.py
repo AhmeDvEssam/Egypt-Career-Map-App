@@ -64,7 +64,7 @@ def generate_map_html(filter_hash, map_style, theme, highlight_lat=None, highlig
      Output('city-bar-chart', 'figure'),
      Output('city-map', 'srcDoc'),
      Output('job-table-container', 'children'),
-     Output('full-map-link', 'href')],
+     Output('full-map-btn-link', 'href')],
     [Input('sidebar-company-filter', 'value'),
      Input('sidebar-city-filter', 'value'),
      Input('sidebar-category-filter', 'value'),
@@ -138,7 +138,7 @@ def update_city_map(companies, cities, categories, work_modes, employment_types,
     deep_blue_scale = get_color_scale(theme)
     city_bar_fig = px.bar(city_counts, x='count', y=col, title='Jobs by City', orientation='h', color='count', color_continuous_scale=deep_blue_scale, text='count')
     dynamic_height = max(500, len(city_counts) * 40)
-    city_bar_fig.update_layout(height=dynamic_height)
+    city_bar_fig.update_layout(height=dynamic_height, yaxis={'categoryorder':'total ascending'})
     apply_chart_styling(city_bar_fig, is_horizontal_bar=True, theme=theme)
 
     # --- Interactivity: Check for Table Selection ---
