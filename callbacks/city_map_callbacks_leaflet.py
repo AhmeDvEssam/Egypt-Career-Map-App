@@ -542,71 +542,87 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
-                # FINAL ATTEMPT: GeoJSON with Explicit function0 PointToLayer
-                # This uses the default JS function in dashExtensions_default.js which handles tooltips.
+                # ---------------------------------------------------------
+                # RECREATION: CLEAN LEAFLET CLUSTERED MAP
+                # ---------------------------------------------------------
+                # Logic: One Feature per Job -> dl.GeoJSON handles Clustering.
+                # Optimization: CSS Classes used in HTML Tooltip to reduce size.
                 
                 geojson_data = None
+                
                 if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
                     features = []
                     
-                    # Clean Data Series
-                    titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
-                    companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
-                    cities_series = map_df['City'].astype(str).fillna("")
-                    in_cities_series = map_df['In_City'].astype(str).fillna("")
-                    links_series = map_df['Link'].astype(str).fillna("#")
-                    lats = map_df['Latitude']
-                    lons = map_df['Longitude']
+                    # 1. Prepare Data Series (Vectorized/List Comp for speed)
+                    # ------------------------------------------------------
+                    titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job").tolist()
+                    companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("").tolist()
+                    cities = map_df['City'].astype(str).fillna("").tolist()
+                    in_cities = map_df['In_City'].astype(str).fillna("").tolist()
+                    links = map_df['Link'].astype(str).fillna("#").tolist()
+                    lats = map_df['Latitude'].tolist()
+                    lons = map_df['Longitude'].tolist()
                     
-                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles_series, companies_series, cities_series, in_cities_series, links_series):
-                        if pd.notna(lat) and pd.notna(lon):
-                            # City String
-                            city_str = str(city)
-                            if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
-                                city_str = f"{city_str} | {str(in_city)}"
-
-                            # Generate HTML String (using CSS classes for size optimization)
-                            # Note: Function0 binds this string to marker.bindTooltip()
-                            tooltip_html = f"""
-                            <div>
-                                <div class="job-tooltip-title">{title}</div>
-                                <div class="job-tooltip-comp">{comp}</div>
-                                <div class="job-tooltip-loc">{city_str}</div>
-                                <div class="job-tooltip-link">Click to Visit</div>
-                            </div>
-                            """
+                    # 2. Build Features Loop (Standard Python)
+                    # ----------------------------------------
+                    count = 0
+                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
+                        # Validity Check
+                        try:
+                            lat_flt = float(lat)
+                            lon_flt = float(lon)
+                            if pd.isna(lat_flt) or pd.isna(lon_flt): continue
+                        except:
+                            continue
                             
-                            features.append({
-                                'type': 'Feature',
-                                'geometry': {
-                                    'type': 'Point',
-                                    'coordinates': [float(lon), float(lat)] 
-                                },
-                                'properties': {
-                                    'tooltip': tooltip_html,
-                                    'link': link
-                                }
-                            })
+                        # Format Location String
+                        loc_str = str(city)
+                        inc = str(in_city).lower()
+                        if inc and inc not in ['nan', 'none', '']:
+                            loc_str = f"{loc_str} | {str(in_city)}"
+                            
+                        # Generate Compact HTML Tooltip 
+                        # relying on assets/map_cluster.css classes
+                        tooltip_html = (
+                            f'<div>'
+                            f'<div class="job-tooltip-title">{title}</div>'
+                            f'<div class="job-tooltip-comp">{comp}</div>'
+                            f'<div class="job-tooltip-loc">{loc_str}</div>'
+                            f'<div class="job-tooltip-link">Click to Visit</div>'
+                            f'</div>'
+                        )
+                        
+                        features.append({
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [lon_flt, lat_flt]
+                            },
+                            "properties": {
+                                "tooltip": tooltip_html,
+                                "link": link # Used by client-side click handler if present
+                            }
+                        })
+                        count += 1
+
+                    print(f"DEBUG: Generated {count} Leaflet Features.")
 
                     if features:
                         geojson_data = {
-                            'type': 'FeatureCollection',
-                            'features': features
+                            "type": "FeatureCollection",
+                            "features": features
                         }
 
-                # RESTORED TO PROVEN WORKING STATE (Static ID + window.bindTooltip)
-                # Static ID prevents potentially destructive re-renders of the layer.
-                # window.bindTooltip uses the custom_callbacks.js logic which handles the HTML string correctly.
-                
-                ns = Namespace("window")
+                # 3. Create Component (No Custom JS, Default Rendering)
+                # -----------------------------------------------------
+                # dl.GeoJSON automatically renders 'tooltip' property as a tooltip.
                 
                 children = [
                     dl.GeoJSON(
                         data=geojson_data,
-                        cluster=True,
+                        cluster=True,  # ENABLE CLUSTERING (Like Folium)
                         zoomToBoundsOnClick=True,
-                        options=dict(onEachFeature=ns("bindTooltip")), 
-                        id="city-geojson-layer" # STATIC ID is Safer
+                        id="city-geojson-layer" 
                     )
                 ]
                 
