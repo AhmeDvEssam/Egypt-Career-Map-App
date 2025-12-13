@@ -315,11 +315,13 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             selected_popup = None
             
             # Check Table Trigger (Branch A specific logic)
-            if triggered_id == 'jobs-table' and active_cell and current_table_records:
+            # Check Table Trigger (Branch A specific logic)
+            is_nav = any('nav-action-store' in p for p in triggered_props)
+            if (triggered_id == 'jobs-table' or is_nav) and active_cell:
                 try:
                     row_idx = active_cell['row']
-                    if row_idx < len(current_table_records):
-                        sel_row = current_table_records[row_idx]
+                    if row_idx < len(table_df):
+                        sel_row = table_df.iloc[row_idx]
                         if sel_row.get('Latitude') and sel_row.get('Longitude'):
                             slat = float(sel_row['Latitude'])
                             slon = float(sel_row['Longitude'])
