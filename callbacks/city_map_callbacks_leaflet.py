@@ -542,12 +542,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
-                # REFACTOR: DIRECT COMPONENT GENERATION (Most Robust Method)
-                # Bypassing GeoJSON and JS bindings to ensure rendering.
+                # FINAL ATTEMPT: GeoJSON with Explicit function0 PointToLayer
+                # This uses the default JS function in dashExtensions_default.js which handles tooltips.
                 
-                markers = []
+                geojson_data = None
                 if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
-                    # Clean Data
+                    features = []
+                    
+                    # Clean Data Series
                     titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
                     companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
                     cities_series = map_df['City'].astype(str).fillna("")
@@ -562,32 +564,48 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             city_str = str(city)
                             if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
                                 city_str = f"{city_str} | {str(in_city)}"
-                            
-                            # Tooltip Content (Optimized with CSS Classes)
-                            tooltip_content = html.Div([
-                                html.Div(title, className='job-tooltip-title'),
-                                html.Div(comp, className='job-tooltip-comp'),
-                                html.Div(city_str, className='job-tooltip-loc'),
-                                html.Div("Click to Visit", className='job-tooltip-link')
-                            ])
-                            
-                            # Add Marker Component
-                            markers.append(
-                                dl.Marker(
-                                    position=[float(lat), float(lon)],
-                                    children=[
-                                        dl.Tooltip(tooltip_content),
-                                        dl.Popup(html.A("Open Link", href=link, target="_blank")) # Optional Popup
-                                    ]
-                                )
-                            )
 
-                # Wrap in Cluster Group
+                            # Generate HTML String (using CSS classes for size optimization)
+                            # Note: Function0 binds this string to marker.bindTooltip()
+                            tooltip_html = f"""
+                            <div>
+                                <div class="job-tooltip-title">{title}</div>
+                                <div class="job-tooltip-comp">{comp}</div>
+                                <div class="job-tooltip-loc">{city_str}</div>
+                                <div class="job-tooltip-link">Click to Visit</div>
+                            </div>
+                            """
+                            
+                            features.append({
+                                'type': 'Feature',
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': [float(lon), float(lat)] 
+                                },
+                                'properties': {
+                                    'tooltip': tooltip_html,
+                                    'link': link
+                                }
+                            })
+
+                    if features:
+                        geojson_data = {
+                            'type': 'FeatureCollection',
+                            'features': features
+                        }
+
+                # Use function0 from dashExtensions_default.js
+                # It explicitly binds: marker.bindTooltip(feature.properties.tooltip)
+                ns = Namespace("dashExtensions", "default")
+                
                 import uuid
                 children = [
-                    dl.MarkerClusterGroup(
-                        children=markers,
-                        id=f"city-cluster-group-{uuid.uuid4()}" 
+                    dl.GeoJSON(
+                        data=geojson_data,
+                        cluster=True,
+                        zoomToBoundsOnClick=True,
+                        options=dict(pointToLayer=ns("function0")), 
+                        id=f"city-geojson-layer-{uuid.uuid4()}" 
                     )
                 ]
                 
