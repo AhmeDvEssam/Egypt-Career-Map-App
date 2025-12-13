@@ -558,9 +558,16 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     # Bar Chart Logic
                     city_counts = filtered_df['City'].value_counts().nlargest(10).reset_index()
                     city_counts.columns = ['City', 'Count']
+                    # Sort Ascendingly so Largest is at the Top of the Chart (Plotly standard)
+                    city_counts = city_counts.sort_values(by="Count", ascending=True)
+                    
                     import plotly.express as px
                     fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white')
-                    fig.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=750)
+                    fig.update_layout(
+                        margin=dict(l=20, r=20, t=40, b=20), 
+                        height=750,
+                        yaxis={'categoryorder':'total ascending'} # Redundant but safe
+                    )
                     apply_chart_styling(fig)
                 else:
                     top_city_kpi = "N/A"
