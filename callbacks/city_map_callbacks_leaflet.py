@@ -450,7 +450,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                     {skills_html}
                                     
                                     <div style="margin-top: 16px; padding-top: 8px; text-align: right;">
-                                        <a href="{p_link}" target="_blank" style="background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">View Job Details</a>
+                                        <a href="{p_link}" target="_blank" style="background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">View Job Details in Wuzzuf.com</a>
                                     </div>
                                 </div>
                                 """
@@ -691,7 +691,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     
                     # Footer: Link
                     html.Div([
-                        html.A("View Job Details", href=row.get('Link', '#'), target='_blank', style={'backgroundColor': '#2563eb', 'color': 'white', 'padding': '10px 20px', 'borderRadius': '6px', 'fontWeight': '700', 'fontSize': '14px', 'textDecoration': 'none', 'display': 'inline-block'})
+                        html.A("View Job Details in Wuzzuf.com", href=row.get('Link', '#'), target='_blank', style={'backgroundColor': '#2563eb', 'color': 'white', 'padding': '10px 20px', 'borderRadius': '6px', 'fontWeight': '700', 'fontSize': '14px', 'textDecoration': 'none', 'display': 'inline-block'})
                     ], style={'marginTop': '16px', 'textAlign': 'right'})
                     
                 ], style={'fontFamily': "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 'padding': '8px', 'minWidth': '500px', 'pointerEvents': 'auto', 'backgroundColor': 'white', 'color': '#1e293b'})
