@@ -490,11 +490,18 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             row_idx_str = "0"
 
             # Table click handler using NEW RECORDS
-            if triggered_id == 'jobs-table' and active_cell and current_table_records:
+            # Table click handler using NEW RECORDS (or Nav Button)
+            is_nav_trigger = triggered_id == 'nav-action-store'
+            is_table_trigger = triggered_id == 'jobs-table'
+            
+            # Use 'table_df' (calculated above) instead of 'current_table_records' (stale state)
+            # This ensures we get the correct row even if page changed in this very callback
+            if (is_table_trigger or is_nav_trigger) and active_cell:
                 try:
                     row_idx = active_cell['row']
-                    if row_idx < len(current_table_records):
-                        selected_row = current_table_records[row_idx]
+                    # We use table_df logic (it is already the slice for the NEW page)
+                    if row_idx < len(table_df):
+                        selected_row = table_df.iloc[row_idx]
                         row_idx_str = f"{row_idx}_{uuid.uuid4()}" # Unique ID
                         
                         if selected_row.get('Latitude') and selected_row.get('Longitude'):
@@ -507,9 +514,9 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 zoom_level = 18
                                 is_single_view = True
                                 if selected_row.get('Link'): link_data = {'url': selected_row['Link']}
-                except Exception as e: print(f"Error: {e}")
+                except Exception as e: print(f"Error in Selection Logic: {e}")
 
-                except Exception as e: print(f"Error: {e}")
+
 
             # Map Markers Generation
             map_df = map_df_all.copy() # Use Globally filtered map_df
@@ -1130,3 +1137,51 @@ def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_j
     nav_data = {'ts': time.time(), 'action': 'nav'}
     
     return new_page, new_active_cell, nav_data
+
+# ------------------------------------------------------------------
+# NEW: Handle Next/Prev Button Logic
+# ------------------------------------------------------------------
+@app.callback(
+    [Output('jobs-table', 'active_cell'),
+     Output('jobs-table', 'page_current'),
+     Output('nav-action-store', 'data', allow_duplicate=True)],
+    [Input('btn-prev-job', 'n_clicks'),
+     Input('btn-next-job', 'n_clicks')],
+    [State('jobs-table', 'active_cell'),
+     State('jobs-table', 'page_current'),
+     State('jobs-table', 'page_size'),
+     State('total-jobs-count-store', 'data')],
+    prevent_initial_call=True
+)
+def handle_job_navigation(prev_clicks, next_clicks, active_cell, page_current, page_size, total_jobs):
+    ctx = callback_context
+    if not ctx.triggered: return no_update, no_update, no_update
+    
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # Defaults
+    if page_current is None: page_current = 0
+    if page_size is None or page_size == 0: page_size = 15
+    if total_jobs is None: total_jobs = 0
+    
+    current_row = active_cell['row'] if active_cell else 0
+    # Global Index = (page * size) + row
+    global_idx = (page_current * page_size) + current_row
+    
+    new_global_idx = global_idx
+    
+    if button_id == 'btn-next-job':
+        new_global_idx += 1
+        if new_global_idx >= total_jobs: new_global_idx = 0 # Loop to start
+    elif button_id == 'btn-prev-job':
+        new_global_idx -= 1
+        if new_global_idx < 0: new_global_idx = max(0, total_jobs - 1)
+        
+    # Convert back to Page/Row
+    new_page = new_global_idx // page_size
+    new_row = new_global_idx % page_size
+    
+    new_active_cell = {'row': new_row, 'column': 0, 'column_id': 'Job Title'}
+    timestamp = int(time.time() * 1000)
+    
+    return new_active_cell, new_page, {'ts': timestamp, 'action': 'nav'}
