@@ -65,6 +65,13 @@ app.clientside_callback(
     """
     function(trigger_data) {
         if (trigger_data) {
+            // CHECK FOR CLOSE ACTION
+            if (trigger_data.action === 'close') {
+                 var el = document.getElementById('click-popup');
+                 if (el) el.style.display = 'none';
+                 return {'display': 'none'};
+            }
+
             // DIRECT DOM FORCE - Bypass React Reconciliation
             var el = document.getElementById('click-popup');
             if (el) {
@@ -231,13 +238,13 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         import math
         current_page = 0
-        if triggered_id == 'jobs-table' and page_current is not None:
+        if (triggered_id == 'jobs-table' or is_nav_trigger) and page_current is not None:
              current_page = page_current
         
         if page_size is None: page_size = 15
         
-        # Reset page to 0 if filters changed (triggered_id is NOT jobs-table)
-        if triggered_id != 'jobs-table':
+        # Reset page to 0 if filters changed (triggered_id is NOT jobs-table and NOT nav)
+        if triggered_id != 'jobs-table' and not is_nav_trigger:
             current_page = 0
             
         # SERVER-SIDE PAGINATION: Slice only the visible rows
@@ -286,7 +293,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                  pass # Skip Logic
         # ---------------------------------------------------------
              
-        map_output = no_update # Default if skipped
+        # map_output = no_update # REMOVED: Do not default to no_update, default to None (Line 283)
         link_data = None 
         
         # 3. Calculate Map Data GLOBALLY (for Consistency)
@@ -296,6 +303,40 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         # Determine if we need to run Map Logic
         run_map_logic = True
+
+        # ---------------------------------------------------------
+        # GLOBAL KPI & CHART CALCULATION (Runs for ALL Map Modes)
+        # ---------------------------------------------------------
+        # Calculates metrics based on filtered_df ensuring consistency across Folium/Leaflet
+        total_jobs = len(filtered_df)
+        total_jobs_kpi = f"{total_jobs:,}"
+        
+        if not filtered_df.empty:
+            top_city = filtered_df['City'].mode()[0] if not filtered_df['City'].mode().empty else "N/A"
+            avg_jobs = int(len(filtered_df) / filtered_df['City'].nunique()) if filtered_df['City'].nunique() > 0 else 0
+            top_city_kpi = top_city
+            avg_jobs_kpi = f"{avg_jobs:,}"
+            
+            # Bar Chart Logic
+            city_counts = filtered_df['City'].value_counts().nlargest(10).reset_index()
+            city_counts.columns = ['City', 'Count']
+            city_counts = city_counts.sort_values(by="Count", ascending=True)
+            
+            import plotly.express as px
+            fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white', text='Count')
+            fig.update_layout(
+                margin=dict(l=20, r=20, t=40, b=20), 
+                height=750,
+                yaxis={'categoryorder':'total ascending', 'title': None}, 
+                xaxis={'title': None}
+            )
+            fig.update_traces(textposition='outside')
+            apply_chart_styling(fig)
+        else:
+            total_jobs_kpi = "0"
+            top_city_kpi = "N/A"
+            avg_jobs_kpi = "0"
+            fig = {}
         
         # OPTIMIZATION: Only skip if PAGE changed but ACTIVE CELL did NOT change.
         triggered_props = [t['prop_id'] for t in ctx.triggered] if ctx.triggered else []
@@ -304,6 +345,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         if triggered_id == 'jobs-table' and is_pagination and not is_active_cell:
              run_map_logic = False
+             map_output = no_update # Set to no_update ONLY if skipping logic
              
         # --- BRANCH A: INTERACTIVE (FOLIUM) MODE ---
         if map_mode == 'interactive' and run_map_logic:
@@ -321,10 +363,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 try:
                     row_idx = active_cell['row']
                     if row_idx < len(table_df):
-                        sel_row = table_df.iloc[row_idx]
-                        if sel_row.get('Latitude') and sel_row.get('Longitude'):
-                            slat = float(sel_row['Latitude'])
-                            slon = float(sel_row['Longitude'])
+                        selected_row = table_df.iloc[row_idx]
+                        if selected_row.get('Latitude') and selected_row.get('Longitude'):
+                            slat = float(selected_row['Latitude'])
+                            slon = float(selected_row['Longitude'])
                             if -90 <= slat <= 90 and -180 <= slon <= 180:
                                 center_location = [slat, slon]
                                 zoom_level = 18 # MAX ZOOM
@@ -332,49 +374,82 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 selected_lon = slon
                                 
                                 # Construct Popup for selected item
-                                p_title = str(sel_row.get('Job Title', '')).replace("'", "")
+                                p_title = str(selected_row.get('Job Title', '')).replace("'", "")
                                 # Clean Markdown: [Title](Link) -> Title
                                 if "[" in p_title and "](" in p_title:
                                     try: p_title = p_title.split('](')[0].replace('[', '')
                                     except: pass
                                     
-                                p_comp = str(sel_row.get('Company', '')).replace("'", "")
-                                p_city = str(sel_row.get('City', ''))
-                                p_incity = str(sel_row.get('In_City', ''))
+                                p_comp = str(selected_row.get('Company', '')).replace("'", "")
+                                p_city = str(selected_row.get('City', ''))
+                                p_incity = str(selected_row.get('In_City', ''))
                                 if p_incity and p_incity.lower() != 'nan': p_city += f" - {p_incity}"
-                                p_link = str(sel_row.get('Link', '#'))
+                                p_link = str(selected_row.get('Link', '#'))
                                 
-                                p_link = str(sel_row.get('Link', '#'))
+                                p_link = str(selected_row.get('Link', '#'))
                                 
                                 # Enhanced Popup Content
-                                p_status = str(sel_row.get('job_status', 'Open'))
-                                p_work = str(sel_row.get('Work Mode', '-'))
-                                p_emp = str(sel_row.get('Employment Type', '-'))
-                                p_level = str(sel_row.get('Career Level', '-'))
-                                p_exp = str(sel_row.get('Year Of Exp_Avg', '-'))
+                                p_status = str(selected_row.get('job_status', 'Open'))
+                                p_work = str(selected_row.get('Work Mode', '-'))
+                                p_emp = str(selected_row.get('Employment Type', '-'))
+                                p_level = str(selected_row.get('Career Level', '-'))
+                                p_exp = str(selected_row.get('Year Of Exp_Avg', '-'))
                                 
-                                selected_popup = f"""
-                                <div style="font-family: 'Segoe UI', sans-serif; min-width: 350px; padding: 5px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                                        <div style="font-weight: 900; font-size: 18px; color: #b71c1c; line-height: 1.2;">{p_title}</div>
-                                        <div style="background: {'#e8f5e9' if p_status=='Open' else '#ffebee'}; color: {'#2e7d32' if p_status=='Open' else '#c62828'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap; margin-left: 10px;">{p_status}</div>
-                                    </div>
-                                    <div style="font-size: 15px; color: #333; font-weight: 600; margin-bottom: 4px;">{p_comp}</div>
-                                    <div style="font-size: 14px; color: #555; margin-bottom: 12px;">📍 {p_city}</div>
-                                    
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #444; margin-bottom: 15px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                                        <div>💼 <b>Type:</b> {p_emp}</div>
-                                        <div>🏠 <b>Mode:</b> {p_work}</div>
-                                        <div>📊 <b>Level:</b> {p_level}</div>
-                                        <div>⏳ <b>Exp:</b> {p_exp} Yrs</div>
-                                    </div>
+                                # Rich Data Extraction
+                                p_logo = str(selected_row.get('Image_link', ''))
+                                p_posted_ago = str(selected_row.get('How Long Ago', 'Recently'))
+                                p_skills = str(selected_row.get('Skills', ''))
+                                p_skills_list = [s.strip() for s in p_skills.split(',')][:5] if p_skills and str(p_skills).lower() != 'nan' else []
+                                
+                                # Status Badge logic
+                                p_status = str(selected_row.get('job_status', 'Open'))
+                                status_color = '#2f855a' if p_status == 'Open' else '#c53030'
+                                status_bg = '#f0fff4' if p_status == 'Open' else '#fff5f5'
+                                status_html = f'<div style="background-color: {status_bg}; color: {status_color}; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 14px; border: 1px solid {status_color}20; display: inline-block;">{p_status}</div>'
 
-                                    <a href="{p_link}" target="_blank" style="display: block; text-align: center; text-decoration: none; color: white; background-color: #d32f2f; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 3px 6px rgba(183, 28, 28, 0.3); transition: background-color 0.2s;">
-                                       Visit Job Link on Wuzzuf <span style="margin-left:5px;">&#8594;</span>
-                                    </a>
+                                # Logo HTML - Square with rounded corners
+                                logo_html = f'<img src="{p_logo}" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px;">' if p_logo and p_logo.lower() != 'nan' else ''
+                                
+                                # Skills Pills HTML - Wide
+                                skills_html = ""
+                                if p_skills_list:
+                                    pills = "".join([f'<span style="background-color: #e2e8f0; color: #2d3748; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e0; margin-right: 6px; margin-bottom: 6px; display: inline-block;">{s}</span>' for s in p_skills_list])
+                                    skills_html = f'<div style="width: 100%;"><div style="font-size: 11px; color: #718096; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">RELEVANT SKILLS</div><div style="display: flex; flex-wrap: wrap;">{pills}</div></div>'
+                                
+                                popup_html_content = f"""
+                                <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; min-width: 550px; padding: 20px; border-radius: 12px; background: white;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                                        <div style="flex: 1; padding-right: 16px;">
+                                            <div style="font-weight: 800; font-size: 24px; color: #1a202c; line-height: 1.2; margin-bottom: 6px; letter-spacing: -0.5px;">{p_title}</div>
+                                            <div style="font-size: 18px; font-weight: 700; color: #4a5568; margin-bottom: 4px;">{p_comp}</div>
+                                            <div style="font-size: 15px; color: #718096; display: flex; align-items: center;">📍 <span style="margin-left: 4px;">{p_city}</span></div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                                            {logo_html}
+                                            {status_html}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 14px; margin-bottom: 20px; background-color: #f8fafc; padding: 16px; border-radius: 10px;">
+                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">TYPE</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_emp}</div></div>
+                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">MODE</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_work}</div></div>
+                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">EXP</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_exp}</div></div>
+                                    </div>
+                                    
+                                    {skills_html}
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf2f7;">
+                                        <div style="font-size: 13px; color: #718096; font-style: italic; font-weight: 500;">Posted {p_posted_ago}</div>
+                                        <a href="{p_link}" target="_blank" style="background-color: #0056b3; background-image: linear-gradient(to bottom, #0069d9, #0056b3); color: white; padding: 10px 24px; border-radius: 8px; font-weight: bold; font-size: 15px; text-decoration: none; box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);">View Job Details →</a>
+                                    </div>
                                 </div>
                                 """
-                except: pass
+                                # CRITICAL FIX: Wrap in folium.Popup object with max_width.
+                                # IMPORTANT: Do NOT wrap in folium.Popup again later.
+                                selected_popup = folium.Popup(popup_html_content, max_width=650, show=True)
+                except Exception as e:
+                    # Error in Selection Logic
+                    pass
                 
             # Tiles Logic
             if map_style == 'dark': tiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'; attr = '&copy; OpenStreetMap &copy; CARTO'
@@ -462,14 +537,13 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     return marker;
                 }
                 """
-                print(f"DEBUG: Folium map_data count = {len(map_data)}")
                 FastMarkerCluster(data=map_data, callback=callback).add_to(m)
 
             # Add Selected Job Marker (RED)
             if selected_lat and selected_lon and selected_popup:
                 folium.Marker(
                     location=[selected_lat, selected_lon],
-                    popup=folium.Popup(selected_popup, max_width=400, show=True),
+                    popup=selected_popup,
                     icon=folium.Icon(color='red', icon='info-sign')
                 ).add_to(m)
 
@@ -477,6 +551,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             # Return Iframe as children
             map_output = html.Iframe(
                 srcDoc=map_html, 
+                id='city-map-iframe-component',
+                key=str(uuid.uuid4()), # FORCE REMOUNT
                 style={'width': '100%', 'height': '750px', 'border': 'none', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'}
             )
 
@@ -493,7 +569,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
             # Table click handler using NEW RECORDS
             # Table click handler using NEW RECORDS (or Nav Button)
-            is_nav_trigger = triggered_id == 'nav-action-store'
+            # is_nav_trigger is already defined at top of function
             is_table_trigger = triggered_id == 'jobs-table'
             
             # Use 'table_df' (calculated above) instead of 'current_table_records' (stale state)
@@ -506,10 +582,11 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                         selected_row = table_df.iloc[row_idx]
                         row_idx_str = f"{row_idx}_{uuid.uuid4()}" # Unique ID
                         
-                        if selected_row.get('Latitude') and selected_row.get('Longitude'):
-                            lat = float(selected_row['Latitude'])
-                            lon = float(selected_row['Longitude'])
-                            if -90 <= lat <= 90 and -180 <= lon <= 180:
+                        if 'Latitude' in selected_row and 'Longitude' in selected_row:
+                            lat = pd.to_numeric(selected_row['Latitude'], errors='coerce')
+                            lon = pd.to_numeric(selected_row['Longitude'], errors='coerce')
+                            
+                            if pd.notna(lat) and pd.notna(lon) and -90 <= lat <= 90 and -180 <= lon <= 180:
                                 highlight_lat = lat
                                 highlight_lon = lon
                                 center_location = [lat, lon]
@@ -533,19 +610,94 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     try: job_title_clean = raw_title.split('](')[0].replace('[', '')
                     except: job_title_clean = raw_title
                 
+                # RICH TOOLTIP CONSTRUCTION
+                # -------------------------
+                # Logo
+                logo_url = row.get('Image_link')
+                logo_html = html.Img(src=logo_url, style={'width': '40px', 'height': '40px', 'objectFit': 'contain', 'borderRadius': '50%', 'border': '1px solid #eee', 'marginRight': '10px'}) if logo_url and str(logo_url).lower() != 'nan' else None
+                
+                # Details
+                work_mode = str(row.get('Work Mode', 'N/A'))
+                emp_type = str(row.get('Employment Type', 'N/A'))
+                exp_lvl = str(row.get('Year Of Exp_Avg', 'N/A'))
+                status = str(row.get('job_status', 'Open'))
+                posted_ago = str(row.get('How Long Ago', 'Recently'))
+                
+                # Skills (Limit to top 5)
+                skills_str = str(row.get('Skills', ''))
+                skills_list = [s.strip() for s in skills_str.split(',')][:5] if skills_str and str(skills_str).lower() != 'nan' else []
+                # DARKER SKILLS PILLS
+                skills_pills = [html.Span(s, style={'backgroundColor': '#e2e8f0', 'color': '#2d3748', 'fontSize': '12px', 'fontWeight': '600', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #cbd5e0', 'display': 'inline-block'}) for s in skills_list]
+                
                 tooltip_html = html.Div([
-                    html.Div(job_title_clean, style={'fontWeight': 'bold', 'fontSize': '16px', 'color': '#c62828', 'marginBottom': '4px'}),
-                    html.Div(str(row['Company']), style={'fontSize': '14px', 'fontWeight': '600', 'marginBottom': '4px'}),
-                    html.Div(str(row['City']), style={'fontSize': '13px', 'color': '#555', 'marginBottom': '4px'}),
-                    html.A("Visit Job Link In Wuzzuf", href=row.get('Link', '#'), target='_blank', style={'color': '#0066CC', 'fontWeight': 'bold', 'fontSize': '13px', 'textDecoration': 'underline', 'display': 'block', 'marginTop': '8px'})
-                ], style={'fontFamily': 'sans-serif', 'padding': '12px', 'minWidth': '200px', 'pointerEvents': 'auto'})
+                    # Header: Logo + Title/Company
+                    html.Div([
+                        logo_html,
+                        html.Div([
+                            html.Div(job_title_clean, style={'fontWeight': '800', 'fontSize': '22px', 'color': '#1a202c', 'lineHeight': '1.2', 'marginBottom': '4px', 'letterSpacing': '-0.5px'}),
+                            html.Div(str(row['Company']), style={'fontSize': '18px', 'fontWeight': '700', 'color': '#4a5568'}),
+                            html.Div(str(row['City']), style={'fontSize': '15px', 'color': '#718096', 'marginTop': '2px'}),
+                        ], style={'flex': '1'})
+                    ], style={'display': 'flex', 'alignItems': 'flex-start', 'marginBottom': '18px', 'borderBottom': '1px solid #e2e8f0', 'paddingBottom': '14px'}),
+                    
+                    # Meta Grid (4 Columns - Single Row)
+                    html.Div([
+                        html.Div([html.Span("TYPE", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(emp_type, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
+                        html.Div([html.Span("MODE", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(work_mode, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
+                        html.Div([html.Span("EXP", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(exp_lvl, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
+                        html.Div([html.Span("STATUS", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(status, style={'color': '#2f855a' if status == 'Open' else '#c53030', 'fontSize': '15px', 'fontWeight': '800'})]),
+                    ], style={'display': 'grid', 'gridTemplateColumns': '1fr 1fr 1fr 1fr', 'gap': '12px', 'padding': '14px', 'backgroundColor': '#f8fafc', 'borderRadius': '10px', 'marginBottom': '16px'}),
+                    
+                    # Skills Area (Full Width Below)
+                    html.Div([
+                        html.Div("Relevant Skills", style={'fontSize': '12px', 'color': '#718096', 'marginBottom': '8px', 'fontWeight': '700', 'textTransform': 'uppercase', 'letterSpacing': '0.5px'}),
+                        html.Div(skills_pills, style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '6px'})
+                    ], style={'width': '100%'}) if skills_pills else None,
+                    
+                    # Footer: Date + Link
+                    html.Div([
+                        html.Div(f"Posted {posted_ago}", style={'fontSize': '14px', 'color': '#718096', 'fontStyle': 'italic', 'fontWeight': '500'}),
+                        html.A("View Job Details", href=row.get('Link', '#'), target='_blank', style={'backgroundColor': '#0056b3', 'backgroundImage': 'linear-gradient(to bottom, #0069d9, #0056b3)', 'color': 'white', 'padding': '10px 20px', 'borderRadius': '6px', 'fontSize': '15px', 'textDecoration': 'none', 'fontWeight': 'bold', 'boxShadow': '0 3px 6px rgba(0,0,0,0.2)'})
+                    ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center', 'marginTop': '16px', 'paddingTop': '12px', 'borderTop': '1px solid #edf2f7'})
+                    
+                ], style={'fontFamily': "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 'padding': '20px', 'minWidth': '600px', 'maxWidth': '650px', 'pointerEvents': 'auto', 'backgroundColor': 'white', 'borderRadius': '12px', 'boxShadow': '0 12px 30px rgba(0,0,0,0.25)', 'border': '1px solid #e2e8f0'})
 
-                # Single RED Marker
+                # Single RED Marker with POPUP-LIKE TOOLTIP
+                # We use dl.Tooltip with 'permanent=True' to ensure it's ALWAYS VISIBLE (Auto-Open)
+                # And we style it to look exactly like a Popup using 'custom-popup-tooltip' class
                 markers.append(dl.CircleMarker(
                     center=[highlight_lat, highlight_lon], radius=15, color='#b71c1c', fillColor='#f44336', fillOpacity=1.0,
-                    children=[dl.Tooltip(tooltip_html, direction='top', sticky=False, permanent=True, interactive=True, className='custom-leaflet-tooltip')],
+                    children=[dl.Tooltip(children=tooltip_html, permanent=True, direction='top', offset=[0, -10], className='custom-popup-tooltip')],
                     id={'type': 'marker-selected', 'index': row_idx_str}
                 ))
+            
+            # ---------------------------------------------------------
+            # SHARED MAP RESOURCES (Tile Layer)
+            # ---------------------------------------------------------
+            map_styles = {
+                'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                'positron': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                'osm': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            }
+            # If map_style is empty or invalid, default to Voyager (Clean)
+            selected_url = map_styles.get(map_style, map_styles['voyager'])
+            if map_style == 'satellite': attr = 'Tiles &copy; Esri'
+            elif map_style == 'osm': attr = '&copy; OpenStreetMap'
+            else: attr = '&copy; CARTO'
+            
+            tile_layer = dl.TileLayer(url=selected_url, attribution=attr)
+
+            # SUPPRESS SCREEN POPUP if Single View (Navigation)
+            if is_single_view:
+                 popup_trigger = {'action': 'close', 'ts': time.time()} # Explicitly Close Client-Side Popup
+                 
+                 # Children = TileLayer + Markers
+                 children = [tile_layer] + markers
+                 
+
+
 
             else:
                 # ---------------------------------------------------------
@@ -554,36 +706,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 
                 geojson_data = None
                 
-                # 1. KPIs Calculation
-                total_jobs = len(filtered_df)
-                total_jobs_kpi = f"{total_jobs:,}"
-                
-                if not filtered_df.empty:
-                    top_city = filtered_df['City'].mode()[0] if not filtered_df['City'].mode().empty else "N/A"
-                    avg_jobs = int(len(filtered_df) / filtered_df['City'].nunique()) if filtered_df['City'].nunique() > 0 else 0
-                    top_city_kpi = top_city
-                    avg_jobs_kpi = f"{avg_jobs:,}"
-                    
-                    # Bar Chart Logic
-                    city_counts = filtered_df['City'].value_counts().nlargest(10).reset_index()
-                    city_counts.columns = ['City', 'Count']
-                    # Sort Ascendingly so Largest is at the Top of the Chart (Plotly standard for hbar)
-                    city_counts = city_counts.sort_values(by="Count", ascending=True)
-                    
-                    import plotly.express as px
-                    fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white', text='Count')
-                    fig.update_layout(
-                        margin=dict(l=20, r=20, t=40, b=20), 
-                        height=750,
-                        yaxis={'categoryorder':'total ascending', 'title': None}, # Remove Y Axis Title
-                        xaxis={'title': None} # Remove X Axis Title
-                    )
-                    fig.update_traces(textposition='outside') # Labels outside
-                    apply_chart_styling(fig)
-                else:
-                    top_city_kpi = "N/A"
-                    avg_jobs_kpi = "0"
-                    fig = {}
+
 
                 # 2. Map Data Generation
                 if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
@@ -679,24 +802,29 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     )
                 ]
                 
-                map_output = dl.Map(
-                    center=center_location,
-                    zoom=zoom_level,
-                    children=children,
-                    style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
-                    id='city-map-leaflet-component'
-                )
-                
-                # Define other return variables
-                tooltip_data = []
-                page_count = 1 
-                link_data = no_update
-                full_map_href = "/full-map"
-                popup_children = no_update
-                popup_trigger = no_update
-                total_jobs_count_for_store = len(filtered_df)
-                
-                return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, map_output, current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
+        # ---------------------------------------------------------
+        # MAP CONSTRUCTION (Moved OUTSIDE if/else to ensure it always renders)
+        # ---------------------------------------------------------
+        # Only build Leaflet map if map_output was NOT already built (by Folium branch)
+        if map_output is None:
+            map_leaf = dl.Map(
+                center=center_location,
+                zoom=zoom_level,
+                children=children,
+                style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
+                id='city-map-leaflet-component'
+            )
+            # Wrap in Div to apply KEY for forced remount
+            map_output = html.Div(map_leaf, style={'width': '100%', 'height': '750px'}, key=str(uuid.uuid4()))
+        
+        # Define other return variables
+        tooltip_data = []
+        page_count = 1 
+        link_data = no_update
+        full_map_href = "/full-map"
+        total_jobs_count_for_store = len(filtered_df)
+        
+        return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, map_output, table_df.to_dict('records'), no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
 
         # KPIs - FIXED: User wants KPI to show TOTAL jobs (7315) regardless of map count.
         total_jobs = len(filtered_df)
@@ -1157,47 +1285,4 @@ def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_j
 # ------------------------------------------------------------------
 # NEW: Handle Next/Prev Button Logic
 # ------------------------------------------------------------------
-@app.callback(
-    [Output('jobs-table', 'active_cell'),
-     Output('jobs-table', 'page_current'),
-     Output('nav-action-store', 'data', allow_duplicate=True)],
-    [Input('btn-prev-job', 'n_clicks'),
-     Input('btn-next-job', 'n_clicks')],
-    [State('jobs-table', 'active_cell'),
-     State('jobs-table', 'page_current'),
-     State('jobs-table', 'page_size'),
-     State('total-jobs-count-store', 'data')],
-    prevent_initial_call=True
-)
-def handle_job_navigation(prev_clicks, next_clicks, active_cell, page_current, page_size, total_jobs):
-    ctx = callback_context
-    if not ctx.triggered: return no_update, no_update, no_update
-    
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    
-    # Defaults
-    if page_current is None: page_current = 0
-    if page_size is None or page_size == 0: page_size = 15
-    if total_jobs is None: total_jobs = 0
-    
-    current_row = active_cell['row'] if active_cell else 0
-    # Global Index = (page * size) + row
-    global_idx = (page_current * page_size) + current_row
-    
-    new_global_idx = global_idx
-    
-    if button_id == 'btn-next-job':
-        new_global_idx += 1
-        if new_global_idx >= total_jobs: new_global_idx = 0 # Loop to start
-    elif button_id == 'btn-prev-job':
-        new_global_idx -= 1
-        if new_global_idx < 0: new_global_idx = max(0, total_jobs - 1)
-        
-    # Convert back to Page/Row
-    new_page = new_global_idx // page_size
-    new_row = new_global_idx % page_size
-    
-    new_active_cell = {'row': new_row, 'column': 0, 'column_id': 'Job Title'}
-    timestamp = int(time.time() * 1000)
-    
-    return new_active_cell, new_page, {'ts': timestamp, 'action': 'nav'}
+
