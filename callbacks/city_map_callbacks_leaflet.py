@@ -539,14 +539,9 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 ))
 
             else:
-                # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
-                geojson_data = None
-                
                 # ---------------------------------------------------------
-                # EMERGENCY SANITY CHECK: MINIMAL MAP
+                # EMERGENCY SANITY CHECK: MINIMAL MAP + DUMMY VARIABLES
                 # ---------------------------------------------------------
-                # Returns 1 TileLayer + 1 Marker. No Logic. No Dataframes.
-                # If this fails, the Map Component is broken.
                 
                 children = [
                     dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
@@ -565,50 +560,20 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     id='city-map-leaflet-component'
                 )
                 
+                # DEFINE VARIABLES TO AVOID UnboundLocalError
+                total_jobs_kpi = "DEBUG"
+                top_city_kpi = "DEBUG"
+                avg_jobs_kpi = "DEBUG"
+                fig = {} 
+                tooltip_data = []
+                page_count = 1
+                link_data = no_update
+                full_map_href = "#"
+                popup_children = no_update
+                popup_trigger = no_update
+                total_jobs_count_for_store = 0
+                
                 return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, map_output, current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
-
-            except Exception as e:
-                print(f"Leaflet Map Error: {e}")
-                import traceback
-                traceback.print_exc()
-                # Return empty map on error to prevent total crash
-                return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, html.Div(f"Map Error: {str(e)}", style={'color': 'red'}), current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
-                
-                map_output = None
-                # Check for existing children to preserve context if needed? NO, we rebuild.
-                
-                map_output = dl.Map(
-                    center=center_location,
-                    zoom=zoom_level,
-                    children=[
-                        dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
-                        *children
-                    ],
-                    style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
-                    id='city-map-leaflet-internal'
-                )
-            map_styles = {
-                'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                'positron': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                'osm': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            }
-            tile_url = map_styles.get(map_style, map_styles['voyager'])
-            if map_style == 'satellite': attribution = 'Tiles &copy; Esri'
-            elif map_style == 'osm': attribution = '&copy; OpenStreetMap contributors'
-            else: attribution = '&copy; OpenStreetMap &copy; CARTO'
-            
-            map_output = dl.Map(
-                center=center_location,
-                zoom=zoom_level,
-                children=[
-                    dl.TileLayer(url=tile_url, attribution=attribution),
-                    dl.LayerGroup(children=markers)
-                ],
-                style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
-                id='city-map-leaflet-internal' 
-            )
 
         # KPIs - FIXED: User wants KPI to show TOTAL jobs (7315) regardless of map count.
         total_jobs = len(filtered_df)
