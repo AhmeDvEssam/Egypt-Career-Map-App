@@ -608,21 +608,37 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     print(f"DEBUG: Generated {count} Leaflet Features.")
 
                     if features:
+                        # LAYER 1: Main Clustered Layer
                         geojson_data = {
                             "type": "FeatureCollection",
                             "features": features
                         }
+                        
+                        # LAYER 2: Test Unclustered Layer (Top 20)
+                        # To verify if rendering works at all without clustering
+                        test_features = features[:20] if len(features) > 20 else features
+                        test_geojson_data = {
+                            "type": "FeatureCollection",
+                            "features": test_features
+                        }
 
-                # 3. Create Component (No Custom JS, Default Rendering)
-                # -----------------------------------------------------
-                # dl.GeoJSON automatically renders 'tooltip' property as a tooltip.
+                # 3. Create Component (Hybrid Debug)
+                # ----------------------------------
                 
                 children = [
+                    # Main Clustered Layer
                     dl.GeoJSON(
                         data=geojson_data,
-                        cluster=True,  # ENABLE CLUSTERING (Like Folium)
+                        cluster=True,
                         zoomToBoundsOnClick=True,
-                        id="city-geojson-layer" 
+                        id="city-geojson-layer-clustered"
+                    ),
+                    # Test Layer (Unclustered, Red Markers?)
+                    # Using a separate layer to check visibility
+                    dl.GeoJSON(
+                        data=test_geojson_data,
+                        cluster=False, # NO CLUSTERING
+                        id="city-geojson-layer-test"
                     )
                 ]
                 
