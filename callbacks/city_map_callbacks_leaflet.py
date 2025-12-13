@@ -588,16 +588,18 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 }
                             })
 
+                    if len(features) > 100:
+                        print("DEBUG: Limiting to 100 features for Rendering Test")
+                        features = features[:100]
+
                     if features:
                         geojson_data = {
                             'type': 'FeatureCollection',
                             'features': features
                         }
 
-                # BACKUP RESTORED: Uses window.bindTooltip (assets/custom_callbacks.js)
-                # This is the proven working method.
-                
-                ns = Namespace("window")
+                # TEST: REMOVE ALL CUSTOM JS OPTIONS (Default Rendering)
+                # If this works, the JS binding was the problem.
                 
                 import uuid
                 children = [
@@ -605,8 +607,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                         data=geojson_data,
                         cluster=True,
                         zoomToBoundsOnClick=True,
-                        options=dict(onEachFeature=ns("bindTooltip")), 
+                        # No Options -> Use Default Rendering
                         id=f"city-geojson-layer-{uuid.uuid4()}" 
+                    ),
+                    # DIAGNOSTIC MARKER (Directly in Children)
+                    dl.Marker(
+                        position=[30.0444, 31.2357], 
+                        children=[dl.Tooltip("System Check: Map Component is Active")],
+                        id="sys-check-marker"
                     )
                 ]
                 
