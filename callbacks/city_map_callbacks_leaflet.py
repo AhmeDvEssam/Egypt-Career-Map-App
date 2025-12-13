@@ -393,8 +393,13 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 p_work = str(selected_row.get('Work Mode', '-'))
                                 p_emp = str(selected_row.get('Employment Type', '-'))
                                 p_level = str(selected_row.get('Career Level', '-'))
-                                p_exp = str(selected_row.get('Year Of Exp_Avg', '-'))
-                                
+                                # Format Experience
+                                try:
+                                    exp_val = float(str(selected_row.get('Year Of Exp_Avg', 0)))
+                                    p_exp = f"{exp_val} Yrs of Exp"
+                                except:
+                                    p_exp = str(selected_row.get('Year Of Exp_Avg', '-'))
+
                                 # Rich Data Extraction
                                 p_logo = str(selected_row.get('Image_link', ''))
                                 p_posted_ago = str(selected_row.get('How Long Ago', 'Recently'))
@@ -403,44 +408,49 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 
                                 # Status Badge logic
                                 p_status = str(selected_row.get('job_status', 'Open'))
-                                status_color = '#2f855a' if p_status == 'Open' else '#c53030'
-                                status_bg = '#f0fff4' if p_status == 'Open' else '#fff5f5'
-                                status_html = f'<div style="background-color: {status_bg}; color: {status_color}; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 14px; border: 1px solid {status_color}20; display: inline-block;">{p_status}</div>'
+                                status_color = '#d32f2f' if p_status == 'Closed' else '#388e3c'
+                                status_bg = '#ffebee' if p_status == 'Closed' else '#e8f5e9'
+                                status_html = f'<div style="background-color: {status_bg}; color: {status_color}; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 11px; display: inline-block; margin-bottom: 4px; letter-spacing: 0.3px; text-transform: uppercase; border: 1px solid {status_color}40;">{p_status}</div>'
 
-                                # Logo HTML - Square with rounded corners
-                                logo_html = f'<img src="{p_logo}" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px;">' if p_logo and p_logo.lower() != 'nan' else ''
+                                # Logo HTML - NO BORDER, Larger
+                                logo_html = f'<img src="{p_logo}" style="width: 85px; height: 85px; object-fit: contain; border-radius: 4px; margin-left: 12px; margin-bottom: 0;">' if p_logo and p_logo.lower() != 'nan' else ''
                                 
-                                # Skills Pills HTML - Wide
+                                # Skills Pills HTML - LARGER & BOLDER
                                 skills_html = ""
                                 if p_skills_list:
-                                    pills = "".join([f'<span style="background-color: #e2e8f0; color: #2d3748; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e0; margin-right: 6px; margin-bottom: 6px; display: inline-block;">{s}</span>' for s in p_skills_list])
-                                    skills_html = f'<div style="width: 100%;"><div style="font-size: 11px; color: #718096; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">RELEVANT SKILLS</div><div style="display: flex; flex-wrap: wrap;">{pills}</div></div>'
+                                    pills = "".join([f'<span style="background-color: #f1f5f9; color: #1e293b; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e0; margin-right: 6px; margin-bottom: 6px; display: inline-block;">{s}</span>' for s in p_skills_list])
+                                    skills_html = f'<div style="width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9;"><div style="font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">RELEVANT SKILLS</div><div style="display: flex; flex-wrap: wrap;">{pills}</div></div>'
                                 
+                                # Badges Row (Type, Mode, Exp)
+                                badges_html = f"""
+                                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                                    <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_emp}</span>
+                                    <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_work}</span>
+                                    <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_exp}</span>
+                                </div>
+                                """
+
                                 popup_html_content = f"""
-                                <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; min-width: 550px; padding: 20px; border-radius: 12px; background: white;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
-                                        <div style="flex: 1; padding-right: 16px;">
-                                            <div style="font-weight: 800; font-size: 24px; color: #1a202c; line-height: 1.2; margin-bottom: 6px; letter-spacing: -0.5px;">{p_title}</div>
-                                            <div style="font-size: 18px; font-weight: 700; color: #4a5568; margin-bottom: 4px;">{p_comp}</div>
-                                            <div style="font-size: 15px; color: #718096; display: flex; align-items: center;">📍 <span style="margin-left: 4px;">{p_city}</span></div>
-                                        </div>
-                                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                                            {logo_html}
+                                <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; min-width: 500px; padding: 20px; border-radius: 8px; background: white; color: #1e293b;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="flex: 1;">
                                             {status_html}
+                                            <div style="font-weight: 800; font-size: 22px; color: #0f172a; line-height: 1.3; margin-bottom: 8px; letter-spacing: -0.3px;">{p_title}</div>
+                                            {badges_html}
+                                            <div style="margin-top: 10px; font-size: 15px;">
+                                                <span style="color: #0056b3; font-weight: 700;">{p_comp}</span>
+                                                <span style="color: #94a3b8; margin: 0 6px; font-weight: 600;">•</span>
+                                                <span style="color: #475569; font-weight: 600;">{p_city}</span>
+                                                <div style="color: #64748b; font-size: 13px; margin-top: 4px; font-weight: 600;">Posted {p_posted_ago}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 14px; margin-bottom: 20px; background-color: #f8fafc; padding: 16px; border-radius: 10px;">
-                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">TYPE</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_emp}</div></div>
-                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">MODE</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_work}</div></div>
-                                        <div><span style="color: #718096; font-size: 11px; font-weight: 700; text-transform: uppercase; display:block; margin-bottom: 2px;">EXP</span> <div style="color: #2d3748; font-weight: 600; font-size: 15px;">{p_exp}</div></div>
+                                        {logo_html}
                                     </div>
                                     
                                     {skills_html}
                                     
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf2f7;">
-                                        <div style="font-size: 13px; color: #718096; font-style: italic; font-weight: 500;">Posted {p_posted_ago}</div>
-                                        <a href="{p_link}" target="_blank" style="background-color: #0056b3; background-image: linear-gradient(to bottom, #0069d9, #0056b3); color: white; padding: 10px 24px; border-radius: 8px; font-weight: bold; font-size: 15px; text-decoration: none; box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);">View Job Details →</a>
+                                    <div style="margin-top: 16px; padding-top: 8px; text-align: right;">
+                                        <a href="{p_link}" target="_blank" style="background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block;">View Job Details</a>
                                     </div>
                                 </div>
                                 """
@@ -619,56 +629,85 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # Details
                 work_mode = str(row.get('Work Mode', 'N/A'))
                 emp_type = str(row.get('Employment Type', 'N/A'))
-                exp_lvl = str(row.get('Year Of Exp_Avg', 'N/A'))
-                status = str(row.get('job_status', 'Open'))
-                posted_ago = str(row.get('How Long Ago', 'Recently'))
-                
+                # Format Experience
+                try:
+                    exp_val = float(str(row.get('Year Of Exp_Avg', 0)))
+                    exp_lvl = f"{exp_val} Yrs of Exp"
+                except:
+                    exp_lvl = str(row.get('Year Of Exp_Avg', 'N/A'))
+
                 # Skills (Limit to top 5)
                 skills_str = str(row.get('Skills', ''))
                 skills_list = [s.strip() for s in skills_str.split(',')][:5] if skills_str and str(skills_str).lower() != 'nan' else []
                 # DARKER SKILLS PILLS
-                skills_pills = [html.Span(s, style={'backgroundColor': '#e2e8f0', 'color': '#2d3748', 'fontSize': '12px', 'fontWeight': '600', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #cbd5e0', 'display': 'inline-block'}) for s in skills_list]
+                skills_pills = [html.Span(s, style={'backgroundColor': '#f1f5f9', 'color': '#1e293b', 'fontSize': '13px', 'fontWeight': '700', 'padding': '6px 12px', 'borderRadius': '6px', 'border': '1px solid #cbd5e0', 'display': 'inline-block'}) for s in skills_list]
                 
-                tooltip_html = html.Div([
-                    # Header: Logo + Title/Company
-                    html.Div([
-                        logo_html,
-                        html.Div([
-                            html.Div(job_title_clean, style={'fontWeight': '800', 'fontSize': '22px', 'color': '#1a202c', 'lineHeight': '1.2', 'marginBottom': '4px', 'letterSpacing': '-0.5px'}),
-                            html.Div(str(row['Company']), style={'fontSize': '18px', 'fontWeight': '700', 'color': '#4a5568'}),
-                            html.Div(str(row['City']), style={'fontSize': '15px', 'color': '#718096', 'marginTop': '2px'}),
-                        ], style={'flex': '1'})
-                    ], style={'display': 'flex', 'alignItems': 'flex-start', 'marginBottom': '18px', 'borderBottom': '1px solid #e2e8f0', 'paddingBottom': '14px'}),
-                    
-                    # Meta Grid (4 Columns - Single Row)
-                    html.Div([
-                        html.Div([html.Span("TYPE", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(emp_type, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
-                        html.Div([html.Span("MODE", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(work_mode, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
-                        html.Div([html.Span("EXP", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(exp_lvl, style={'color': '#2d3748', 'fontSize': '15px', 'fontWeight': '600'})]),
-                        html.Div([html.Span("STATUS", style={'color': '#718096', 'fontSize': '11px', 'fontWeight': '700', 'letterSpacing': '0.5px', 'marginRight': '4px', 'textTransform': 'uppercase', 'display':'block'}), html.Span(status, style={'color': '#2f855a' if status == 'Open' else '#c53030', 'fontSize': '15px', 'fontWeight': '800'})]),
-                    ], style={'display': 'grid', 'gridTemplateColumns': '1fr 1fr 1fr 1fr', 'gap': '12px', 'padding': '14px', 'backgroundColor': '#f8fafc', 'borderRadius': '10px', 'marginBottom': '16px'}),
-                    
-                    # Skills Area (Full Width Below)
-                    html.Div([
-                        html.Div("Relevant Skills", style={'fontSize': '12px', 'color': '#718096', 'marginBottom': '8px', 'fontWeight': '700', 'textTransform': 'uppercase', 'letterSpacing': '0.5px'}),
-                        html.Div(skills_pills, style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '6px'})
-                    ], style={'width': '100%'}) if skills_pills else None,
-                    
-                    # Footer: Date + Link
-                    html.Div([
-                        html.Div(f"Posted {posted_ago}", style={'fontSize': '14px', 'color': '#718096', 'fontStyle': 'italic', 'fontWeight': '500'}),
-                        html.A("View Job Details", href=row.get('Link', '#'), target='_blank', style={'backgroundColor': '#0056b3', 'backgroundImage': 'linear-gradient(to bottom, #0069d9, #0056b3)', 'color': 'white', 'padding': '10px 20px', 'borderRadius': '6px', 'fontSize': '15px', 'textDecoration': 'none', 'fontWeight': 'bold', 'boxShadow': '0 3px 6px rgba(0,0,0,0.2)'})
-                    ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center', 'marginTop': '16px', 'paddingTop': '12px', 'borderTop': '1px solid #edf2f7'})
-                    
-                ], style={'fontFamily': "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 'padding': '20px', 'minWidth': '600px', 'maxWidth': '650px', 'pointerEvents': 'auto', 'backgroundColor': 'white', 'borderRadius': '12px', 'boxShadow': '0 12px 30px rgba(0,0,0,0.25)', 'border': '1px solid #e2e8f0'})
+                # Status Badge logic
+                status = str(row.get('job_status', 'Open'))
+                posted_ago = str(row.get('How Long Ago', 'Recently'))
+                
+                status_color = '#d32f2f' if status == 'Closed' else '#388e3c'
+                status_bg = '#ffebee' if status == 'Closed' else '#e8f5e9'
+                status_html = html.Div(status, style={'backgroundColor': status_bg, 'color': status_color, 'padding': '2px 8px', 'borderRadius': '4px', 'fontWeight': '800', 'fontSize': '11px', 'display': 'inline-block', 'marginBottom': '4px', 'letterSpacing': '0.3px', 'textTransform': 'uppercase', 'border': f'1px solid {status_color}40'})
 
-                # Single RED Marker with POPUP-LIKE TOOLTIP
-                # We use dl.Tooltip with 'permanent=True' to ensure it's ALWAYS VISIBLE (Auto-Open)
-                # And we style it to look exactly like a Popup using 'custom-popup-tooltip' class
-                markers.append(dl.CircleMarker(
-                    center=[highlight_lat, highlight_lon], radius=15, color='#b71c1c', fillColor='#f44336', fillOpacity=1.0,
-                    children=[dl.Tooltip(children=tooltip_html, permanent=True, direction='top', offset=[0, -10], className='custom-popup-tooltip')],
-                    id={'type': 'marker-selected', 'index': row_idx_str}
+                # Logo HTML
+                logo_html = html.Img(src=logo_url, style={'width': '85px', 'height': '85px', 'objectFit': 'contain', 'borderRadius': '4px', 'marginLeft': '12px', 'marginBottom': '0'}) if logo_url and str(logo_url).lower() != 'nan' else None
+
+                popup_content = html.Div([
+                    # Flex container for top section
+                    html.Div([
+                        # Left Content
+                        html.Div([
+                            status_html,
+                            html.Div(job_title_clean, style={'fontWeight': '800', 'fontSize': '22px', 'color': '#0f172a', 'lineHeight': '1.3', 'marginBottom': '8px', 'letterSpacing': '-0.3px'}),
+                            
+                            # Badges Row
+                            html.Div([
+                                html.Span(emp_type, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
+                                html.Span(work_mode, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
+                                html.Span(exp_lvl, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
+                            ], style={'display': 'flex', 'gap': '8px', 'marginBottom': '8px', 'flexWrap': 'wrap'}),
+                            
+                            # Company/Loc/Date
+                            html.Div([
+                                html.Span(str(row['Company']), style={'color': '#0056b3', 'fontWeight': '700'}),
+                                html.Span(" • ", style={'color': '#94a3b8', 'margin': '0 6px', 'fontWeight': '600'}),
+                                html.Span(str(row['City']), style={'color': '#475569', 'fontWeight': '600'}),
+                                html.Div(f"Posted {posted_ago}", style={'color': '#64748b', 'fontSize': '13px', 'marginTop': '4px', 'fontWeight': '600'})
+                            ], style={'marginTop': '10px', 'fontSize': '15px'}),
+                            
+                        ], style={'flex': '1'}),
+                        
+                        # Right Content (Logo)
+                        logo_html
+                        
+                    ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'flex-start'}),
+                    
+                    # Skills Area
+                     html.Div([
+                        html.Div("Relevant Skills", style={'fontSize': '11px', 'color': '#64748b', 'marginBottom': '8px', 'fontWeight': '800', 'textTransform': 'uppercase', 'letterSpacing': '0.5px'}),
+                        html.Div(skills_pills, style={'display': 'flex', 'flexWrap': 'wrap', 'gap': '6px'})
+                    ], style={'width': '100%', 'marginTop': '16px', 'paddingTop': '12px', 'borderTop': '1px solid #f1f5f9'}) if skills_pills else None,
+                    
+                    # Footer: Link
+                    html.Div([
+                        html.A("View Job Details", href=row.get('Link', '#'), target='_blank', style={'backgroundColor': '#2563eb', 'color': 'white', 'padding': '10px 20px', 'borderRadius': '6px', 'fontWeight': '700', 'fontSize': '14px', 'textDecoration': 'none', 'display': 'inline-block'})
+                    ], style={'marginTop': '16px', 'textAlign': 'right'})
+                    
+                ], style={'fontFamily': "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 'padding': '8px', 'minWidth': '500px', 'pointerEvents': 'auto', 'backgroundColor': 'white', 'color': '#1e293b'})
+
+                markers.append(dl.Marker(
+                    position=[highlight_lat, highlight_lon],
+                    children=[
+                        # SWITCHED TO POPUP FOR BETTER VISIBILITY & AUTO-PAN
+                        dl.Popup(
+                            children=popup_content,
+                            maxWidth=600,
+                            minWidth=500,
+                            autoPan=True,
+                            closeButton=True
+                        ) 
+                    ]
                 ))
             
             # ---------------------------------------------------------
