@@ -594,9 +594,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             'features': features
                         }
 
-                # Use function0 from dashExtensions_default.js
-                # It explicitly binds: marker.bindTooltip(feature.properties.tooltip)
-                ns = Namespace("dashExtensions", "default")
+                # BACKUP RESTORED: Uses window.bindTooltip (assets/custom_callbacks.js)
+                # This is the proven working method.
+                
+                ns = Namespace("window")
                 
                 import uuid
                 children = [
@@ -604,16 +605,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                         data=geojson_data,
                         cluster=True,
                         zoomToBoundsOnClick=True,
-                        options=dict(pointToLayer=ns("function0")), 
+                        options=dict(onEachFeature=ns("bindTooltip")), 
                         id=f"city-geojson-layer-{uuid.uuid4()}" 
-                    ),
-                    # DIAGNOSTIC MARKER: Direct Component
-                    dl.Marker(
-                        position=[30.0444, 31.2357], # Cairo
-                        children=[
-                            dl.Tooltip("DIAGNOSTIC MARKER: If you see this, Map works, GeoJSON fails.")
-                        ],
-                        id="diagnostic-marker"
                     )
                 ]
                 
