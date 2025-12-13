@@ -586,14 +586,22 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             lon_flt = float(lon)
                             if pd.isna(lat_flt) or pd.isna(lon_flt): continue
                             
-                            # Location String
+                            # Format Location String
                             loc_str = str(city)
                             inc = str(in_city).lower()
                             if inc and inc not in ['nan', 'none', '']:
                                 loc_str = f"{loc_str} | {str(in_city)}"
                             
-                            # PLAIN TEXT TOOLTIP (Safe Mode)
-                            tooltip_text = f"{title} | {comp} | {loc_str}"
+                            # BEAAUTIFUL HTML TOOLTIP (Restored)
+                            # Using CSS classes from assets/map_cluster.css for styling
+                            tooltip_html = (
+                                f'<div>'
+                                f'<div class="job-tooltip-title">{title}</div>'
+                                f'<div class="job-tooltip-comp">{comp}</div>'
+                                f'<div class="job-tooltip-loc">{loc_str}</div>'
+                                f'<div class="job-tooltip-link">Click to Visit</div>'
+                                f'</div>'
+                            )
                             
                             features.append({
                                 "type": "Feature",
@@ -602,7 +610,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                     "coordinates": [lon_flt, lat_flt]
                                 },
                                 "properties": {
-                                    "tooltip": tooltip_text,
+                                    "tooltip": tooltip_html, # Dash Leaflet renders HTML string automatically
                                     "link": link
                                 }
                             })
@@ -614,8 +622,25 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             "features": features
                         }
 
+                # TILE LAYER SELECTION (Fixed URLs)
+                # Ensure we use {z}/{x}/{y} format which is standard for Leaflet
+                map_styles = {
+                    'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                    'positron': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                    'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                    'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    'osm': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                }
+                
+                # If map_style is empty or invalid, default to Voyager (Clean)
+                selected_url = map_styles.get(map_style, map_styles['voyager'])
+                # Attribution
+                if map_style == 'satellite': attr = 'Tiles &copy; Esri'
+                elif map_style == 'osm': attr = '&copy; OpenStreetMap'
+                else: attr = '&copy; CARTO'
+
                 children = [
-                    dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+                    dl.TileLayer(url=selected_url, attribution=attr),
                     dl.GeoJSON(
                         data=geojson_data,
                         cluster=True,
