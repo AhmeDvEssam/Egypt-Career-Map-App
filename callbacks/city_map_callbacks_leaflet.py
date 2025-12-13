@@ -522,7 +522,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             map_df = map_df_all.copy() # Use Globally filtered map_df
             markers = []
 
-            if is_single_view and selected_row:
+            if is_single_view and selected_row is not None:
                 row = selected_row
                 raw_title = str(row['Job Title'])
                 # Clean Title
@@ -565,16 +565,18 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     # Bar Chart Logic
                     city_counts = filtered_df['City'].value_counts().nlargest(10).reset_index()
                     city_counts.columns = ['City', 'Count']
-                    # Sort Ascendingly so Largest is at the Top of the Chart (Plotly standard)
+                    # Sort Ascendingly so Largest is at the Top of the Chart (Plotly standard for hbar)
                     city_counts = city_counts.sort_values(by="Count", ascending=True)
                     
                     import plotly.express as px
-                    fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white')
+                    fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white', text='Count')
                     fig.update_layout(
                         margin=dict(l=20, r=20, t=40, b=20), 
                         height=750,
-                        yaxis={'categoryorder':'total ascending'} # Redundant but safe
+                        yaxis={'categoryorder':'total ascending', 'title': None}, # Remove Y Axis Title
+                        xaxis={'title': None} # Remove X Axis Title
                     )
+                    fig.update_traces(textposition='outside') # Labels outside
                     apply_chart_styling(fig)
                 else:
                     top_city_kpi = "N/A"
@@ -586,6 +588,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     features = []
                     
                     # Convert columns to lists for speed
+                    # ... (keep existing setup) ...
                     titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job").tolist()
                     companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("").tolist()
                     cities = map_df['City'].astype(str).fillna("").tolist()
@@ -593,6 +596,17 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     links = map_df['Link'].astype(str).fillna("#").tolist()
                     lats = map_df['Latitude'].tolist()
                     lons = map_df['Longitude'].tolist()
+
+                    # Define row for single view if needed (Safe Check)
+                    if is_single_view and selected_row is not None:
+                        row = selected_row
+                        # ... Logic will follow in next chunk or rely on existing loop if I don't change it ..
+                        # Wait, I need to check where I am editing.
+                        # The block below 'if is_single_view and selected_row:' is further down.
+                        # I will edit that separately or include it here if contiguous.
+                        # It is separated by the loop. I'll stick to Bar Chart here and do the Series fix in a separate chunk.
+                        pass
+
                     
                     for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
                         try:
