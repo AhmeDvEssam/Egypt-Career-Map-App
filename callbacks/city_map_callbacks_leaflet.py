@@ -112,7 +112,7 @@ app.clientside_callback(
      Output('city-top-city-kpi', 'children'),
      Output('city-avg-jobs-kpi', 'children'),
      Output('city-bar-chart', 'figure'),
-     Output('city-map-leaflet', 'children'),
+     Output('city-map-container', 'children'),
      Output('jobs-table', 'data'),
      Output('jobs-table', 'tooltip_data'),
      Output('jobs-table', 'page_count'),
