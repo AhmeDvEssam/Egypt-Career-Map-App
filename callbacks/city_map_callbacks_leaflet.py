@@ -595,12 +595,15 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             'features': features
                         }
 
+                # Create GeoJSON Layer with Correct Tooltip Binding (Original)
+                ns = Namespace("window")
+                
                 children = [
                     dl.GeoJSON(
                         data=geojson_data,
                         cluster=True,
                         zoomToBoundsOnClick=True,
-                        # No Options -> Use Default Rendering which uses 'tooltip' prop automatically
+                        options=dict(onEachFeature=ns("bindTooltip")), # Points to assets/custom_callbacks.js
                         id="city-geojson-layer"
                     )
                 ]
