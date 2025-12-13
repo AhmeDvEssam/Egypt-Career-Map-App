@@ -540,15 +540,87 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
             else:
                 # ---------------------------------------------------------
-                # EMERGENCY SANITY CHECK: MINIMAL MAP + DUMMY VARIABLES
+                # RESTORED LOGIC: Full Data + Clustering (Plain Text Tooltips)
                 # ---------------------------------------------------------
                 
+                geojson_data = None
+                
+                # 1. KPIs Calculation
+                total_jobs = len(filtered_df)
+                total_jobs_kpi = f"{total_jobs:,}"
+                
+                if not filtered_df.empty:
+                    top_city = filtered_df['City'].mode()[0] if not filtered_df['City'].mode().empty else "N/A"
+                    avg_jobs = int(len(filtered_df) / filtered_df['City'].nunique()) if filtered_df['City'].nunique() > 0 else 0
+                    top_city_kpi = top_city
+                    avg_jobs_kpi = f"{avg_jobs:,}"
+                    
+                    # Bar Chart Logic
+                    city_counts = filtered_df['City'].value_counts().nlargest(10).reset_index()
+                    city_counts.columns = ['City', 'Count']
+                    import plotly.express as px
+                    fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white')
+                    fig.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=750)
+                    apply_chart_styling(fig)
+                else:
+                    top_city_kpi = "N/A"
+                    avg_jobs_kpi = "0"
+                    fig = {}
+
+                # 2. Map Data Generation
+                if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
+                    features = []
+                    
+                    # Convert columns to lists for speed
+                    titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job").tolist()
+                    companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("").tolist()
+                    cities = map_df['City'].astype(str).fillna("").tolist()
+                    in_cities = map_df['In_City'].astype(str).fillna("").tolist()
+                    links = map_df['Link'].astype(str).fillna("#").tolist()
+                    lats = map_df['Latitude'].tolist()
+                    lons = map_df['Longitude'].tolist()
+                    
+                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
+                        try:
+                            lat_flt = float(lat)
+                            lon_flt = float(lon)
+                            if pd.isna(lat_flt) or pd.isna(lon_flt): continue
+                            
+                            # Location String
+                            loc_str = str(city)
+                            inc = str(in_city).lower()
+                            if inc and inc not in ['nan', 'none', '']:
+                                loc_str = f"{loc_str} | {str(in_city)}"
+                            
+                            # PLAIN TEXT TOOLTIP (Safe Mode)
+                            tooltip_text = f"{title} | {comp} | {loc_str}"
+                            
+                            features.append({
+                                "type": "Feature",
+                                "geometry": {
+                                    "type": "Point",
+                                    "coordinates": [lon_flt, lat_flt]
+                                },
+                                "properties": {
+                                    "tooltip": tooltip_text,
+                                    "link": link
+                                }
+                            })
+                        except: continue
+
+                    if features:
+                        geojson_data = {
+                            "type": "FeatureCollection",
+                            "features": features
+                        }
+
                 children = [
                     dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
-                    dl.Marker(
-                        position=[30.0444, 31.2357], 
-                        children=[dl.Tooltip("SANITY CHECK: Map Works")],
-                        id="sanity-check-marker"
+                    dl.GeoJSON(
+                        data=geojson_data,
+                        cluster=True,
+                        zoomToBoundsOnClick=True,
+                        id="city-geojson-layer"
                     )
                 ]
                 
@@ -560,18 +632,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     id='city-map-leaflet-component'
                 )
                 
-                # DEFINE VARIABLES TO AVOID UnboundLocalError
-                total_jobs_kpi = "DEBUG"
-                top_city_kpi = "DEBUG"
-                avg_jobs_kpi = "DEBUG"
-                fig = {} 
+                # Define other return variables
                 tooltip_data = []
-                page_count = 1
+                page_count = 1 
                 link_data = no_update
-                full_map_href = "#"
+                full_map_href = "/full-map"
                 popup_children = no_update
                 popup_trigger = no_update
-                total_jobs_count_for_store = 0
+                total_jobs_count_for_store = len(filtered_df)
                 
                 return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, map_output, current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
 
