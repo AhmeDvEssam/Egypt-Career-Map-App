@@ -542,7 +542,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
-                # OPTIMIZED: CLIENT-SIDE RENDERING
+                # REVERT TO SERVER-SIDE RENDERING (SAFETY FIRST)
                 if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
                     features = []
                     
@@ -551,8 +551,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     for c in cols: 
                         if c not in map_df.columns: map_df[c] = ""
                     
-                    # Iterate to build features (1 per Job) - RAW DATA ONLY
-                    # Clean data first for speed
+                    # Use Series for speed
                     titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
                     companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
                     cities_series = map_df['City'].astype(str).fillna("")
@@ -563,14 +562,20 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     
                     for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles_series, companies_series, cities_series, in_cities_series, links_series):
                         if pd.notna(lat) and pd.notna(lon):
-                            # Minimal Properties Payload
-                            props = {
-                                'title': title,
-                                'company': comp,
-                                'city': city,
-                                'in_city': in_city,
-                                'link': link
-                            }
+                            # Handle City Logic
+                            city_str = str(city)
+                            if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
+                                city_str = f"{city_str} | {str(in_city)}"
+
+                            # Generate HTML on Server (Reliable)
+                            tooltip_html = f"""
+                            <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
+                                <div style="font-weight: bold; font-size: 14px; color: #d32f2f; margin-bottom: 3px;">{title}</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 3px;">{comp}</div>
+                                <div style="font-size: 12px; color: #666; margin-bottom: 6px;">{city_str}</div>
+                                <div style="font-size: 11px; color: #0066CC; font-weight: bold;">Click to Visit Job Link ➜</div>
+                            </div>
+                            """
                             
                             features.append({
                                 'type': 'Feature',
@@ -578,14 +583,11 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                     'type': 'Point',
                                     'coordinates': [float(lon), float(lat)] 
                                 },
-                                'properties': props
+                                'properties': {
+                                    'tooltip': tooltip_html,
+                                    'link': link
+                                }
                             })
-                    
-                    if features:
-                        geojson_data = {
-                            'type': 'FeatureCollection',
-                            'features': features
-                        }
 
                     if features:
                         geojson_data = {
@@ -593,15 +595,12 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             'features': features
                         }
 
-                # Create GeoJSON Layer with Client-Side Rendering
-                ns = Namespace("dashExtensions", "default")
-                
                 children = [
                     dl.GeoJSON(
                         data=geojson_data,
                         cluster=True,
                         zoomToBoundsOnClick=True,
-                        options=dict(onEachFeature=ns("bindTooltipJS")), # Use JS Function for Tooltips (Safer)
+                        # No Options -> Use Default Rendering which uses 'tooltip' prop automatically
                         id="city-geojson-layer"
                     )
                 ]
