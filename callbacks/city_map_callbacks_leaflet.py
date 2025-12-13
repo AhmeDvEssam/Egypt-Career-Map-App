@@ -542,31 +542,53 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
-                # SUPER SAFE MODE: HARDCODED MARKER TEST
-                # If this doesn't show, the map component is broken.
-                geojson_data = {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                            'type': 'Feature',
-                            'geometry': {
-                                'type': 'Point',
-                                'coordinates': [31.2357, 30.0444] # Cairo
-                            },
-                            'properties': {
-                                'tooltip': "Test Marker"
-                            }
-                        }
-                    ]
-                }
+                # REFACTOR: DIRECT COMPONENT GENERATION (Most Robust Method)
+                # Bypassing GeoJSON and JS bindings to ensure rendering.
                 
+                markers = []
+                if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
+                    # Clean Data
+                    titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
+                    companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
+                    cities_series = map_df['City'].astype(str).fillna("")
+                    in_cities_series = map_df['In_City'].astype(str).fillna("")
+                    links_series = map_df['Link'].astype(str).fillna("#")
+                    lats = map_df['Latitude']
+                    lons = map_df['Longitude']
+                    
+                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles_series, companies_series, cities_series, in_cities_series, links_series):
+                        if pd.notna(lat) and pd.notna(lon):
+                            # City String
+                            city_str = str(city)
+                            if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
+                                city_str = f"{city_str} | {str(in_city)}"
+                            
+                            # Tooltip Content (Simple Text or HTML)
+                            # Using html.Div for Tooltip content (Standard Dash)
+                            tooltip_content = html.Div([
+                                html.Div(title, style={'fontWeight': 'bold', 'color': '#d32f2f'}),
+                                html.Div(comp, style={'fontWeight': '600'}),
+                                html.Div(city_str, style={'fontSize': '12px', 'color': '#666'}),
+                                html.Div("Click to Visit", style={'fontSize': '11px', 'color': 'blue'})
+                            ])
+                            
+                            # Add Marker Component
+                            markers.append(
+                                dl.Marker(
+                                    position=[float(lat), float(lon)],
+                                    children=[
+                                        dl.Tooltip(tooltip_content),
+                                        dl.Popup(html.A("Open Link", href=link, target="_blank")) # Optional Popup
+                                    ]
+                                )
+                            )
+
+                # Wrap in Cluster Group
                 import uuid
                 children = [
-                    dl.GeoJSON(
-                        data=geojson_data,
-                        cluster=False, 
-                        zoomToBoundsOnClick=True,
-                        id=f"city-geojson-layer-{uuid.uuid4()}" # FORCE FRESH RENDER
+                    dl.MarkerClusterGroup(
+                        children=markers,
+                        id=f"city-cluster-group-{uuid.uuid4()}" 
                     )
                 ]
                 
