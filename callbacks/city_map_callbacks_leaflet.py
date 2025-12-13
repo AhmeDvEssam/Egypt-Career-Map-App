@@ -563,13 +563,12 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                             if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
                                 city_str = f"{city_str} | {str(in_city)}"
                             
-                            # Tooltip Content (Simple Text or HTML)
-                            # Using html.Div for Tooltip content (Standard Dash)
+                            # Tooltip Content (Optimized with CSS Classes)
                             tooltip_content = html.Div([
-                                html.Div(title, style={'fontWeight': 'bold', 'color': '#d32f2f'}),
-                                html.Div(comp, style={'fontWeight': '600'}),
-                                html.Div(city_str, style={'fontSize': '12px', 'color': '#666'}),
-                                html.Div("Click to Visit", style={'fontSize': '11px', 'color': 'blue'})
+                                html.Div(title, className='job-tooltip-title'),
+                                html.Div(comp, className='job-tooltip-comp'),
+                                html.Div(city_str, className='job-tooltip-loc'),
+                                html.Div("Click to Visit", className='job-tooltip-link')
                             ])
                             
                             # Add Marker Component
