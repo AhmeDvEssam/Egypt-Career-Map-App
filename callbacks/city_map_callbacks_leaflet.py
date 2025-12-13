@@ -542,71 +542,31 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # CLUSTERING LOGIC: Creates One Feature Per Job -> Let Leaflet Cluster Them
                 geojson_data = None
                 
-                # REVERT TO SERVER-SIDE RENDERING (SAFETY FIRST)
-                if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
-                    features = []
-                    
-                    # Ensure cols exist
-                    cols = ['Latitude', 'Longitude', 'Job Title', 'Company', 'City', 'In_City', 'Link']
-                    for c in cols: 
-                        if c not in map_df.columns: map_df[c] = ""
-                    
-                    # Use Series for speed
-                    titles_series = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job")
-                    companies_series = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("")
-                    cities_series = map_df['City'].astype(str).fillna("")
-                    in_cities_series = map_df['In_City'].astype(str).fillna("")
-                    links_series = map_df['Link'].astype(str).fillna("#")
-                    lats = map_df['Latitude']
-                    lons = map_df['Longitude']
-                    
-                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles_series, companies_series, cities_series, in_cities_series, links_series):
-                        if pd.notna(lat) and pd.notna(lon):
-                            # Handle City Logic
-                            city_str = str(city)
-                            if pd.notna(in_city) and str(in_city).lower() not in ['nan', 'none', '']:
-                                city_str = f"{city_str} | {str(in_city)}"
-
-                            # Generate HTML on Server (Reliable)
-                            tooltip_html = f"""
-                            <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
-                                <div style="font-weight: bold; font-size: 14px; color: #d32f2f; margin-bottom: 3px;">{title}</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 3px;">{comp}</div>
-                                <div style="font-size: 12px; color: #666; margin-bottom: 6px;">{city_str}</div>
-                                <div style="font-size: 11px; color: #0066CC; font-weight: bold;">Click to Visit Job Link ➜</div>
-                            </div>
-                            """
-                            
-                            features.append({
-                                'type': 'Feature',
-                                'geometry': {
-                                    'type': 'Point',
-                                    'coordinates': [float(lon), float(lat)] 
-                                },
-                                'properties': {
-                                    'tooltip': tooltip_html,
-                                    'link': link
-                                }
-                            })
-
-                    # EMERGENCY DEBUG: LIMIT TO 50 POINTS & DISABLE CLUSTERING
-                    if len(features) > 50:
-                        print(f"DEBUG: Truncating {len(features)} features to 50 for SAFE MODE test.")
-                        features = features[:50]
-
-                    if features:
-                        geojson_data = {
-                            'type': 'FeatureCollection',
-                            'features': features
+                # SUPER SAFE MODE: HARDCODED MARKER TEST
+                # If this doesn't show, the map component is broken.
+                geojson_data = {
+                    'type': 'FeatureCollection',
+                    'features': [
+                        {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Point',
+                                'coordinates': [31.2357, 30.0444] # Cairo
+                            },
+                            'properties': {
+                                'tooltip': "Test Marker"
+                            }
                         }
-
+                    ]
+                }
+                
+                import uuid
                 children = [
                     dl.GeoJSON(
                         data=geojson_data,
-                        cluster=False, # DISABLED FOR DEBUGGING
+                        cluster=False, 
                         zoomToBoundsOnClick=True,
-                        # options=dict(onEachFeature=ns("bindTooltip")),
-                        id="city-geojson-layer"
+                        id=f"city-geojson-layer-{uuid.uuid4()}" # FORCE FRESH RENDER
                     )
                 ]
                 
