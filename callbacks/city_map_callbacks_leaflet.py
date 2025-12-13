@@ -865,7 +865,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         # Define other return variables
         tooltip_data = []
-        page_count = 1 
+        page_count = total_pages 
         link_data = no_update
         full_map_href = "/full-map"
         total_jobs_count_for_store = len(filtered_df)
