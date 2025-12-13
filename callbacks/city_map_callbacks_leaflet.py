@@ -606,6 +606,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                         zoomToBoundsOnClick=True,
                         options=dict(pointToLayer=ns("function0")), 
                         id=f"city-geojson-layer-{uuid.uuid4()}" 
+                    ),
+                    # DIAGNOSTIC MARKER: Direct Component
+                    dl.Marker(
+                        position=[30.0444, 31.2357], # Cairo
+                        children=[
+                            dl.Tooltip("DIAGNOSTIC MARKER: If you see this, Map works, GeoJSON fails.")
+                        ],
+                        id="diagnostic-marker"
                     )
                 ]
                 
