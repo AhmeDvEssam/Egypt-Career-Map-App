@@ -543,104 +543,36 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 geojson_data = None
                 
                 # ---------------------------------------------------------
-                # RECREATION: CLEAN LEAFLET CLUSTERED MAP
+                # EMERGENCY SANITY CHECK: MINIMAL MAP
                 # ---------------------------------------------------------
-                # Logic: One Feature per Job -> dl.GeoJSON handles Clustering.
-                # Optimization: CSS Classes used in HTML Tooltip to reduce size.
-                
-                geojson_data = None
-                
-                if 'Latitude' in map_df.columns and 'Longitude' in map_df.columns:
-                    features = []
-                    
-                    # 1. Prepare Data Series (Vectorized/List Comp for speed)
-                    # ------------------------------------------------------
-                    titles = map_df['Job Title'].astype(str).str.replace("'", "", regex=False).fillna("Job").tolist()
-                    companies = map_df['Company'].astype(str).str.replace("'","", regex=False).fillna("").tolist()
-                    cities = map_df['City'].astype(str).fillna("").tolist()
-                    in_cities = map_df['In_City'].astype(str).fillna("").tolist()
-                    links = map_df['Link'].astype(str).fillna("#").tolist()
-                    lats = map_df['Latitude'].tolist()
-                    lons = map_df['Longitude'].tolist()
-                    
-                    # 2. Build Features Loop (Standard Python)
-                    # ----------------------------------------
-                    count = 0
-                    for lat, lon, title, comp, city, in_city, link in zip(lats, lons, titles, companies, cities, in_cities, links):
-                        # Validity Check
-                        try:
-                            lat_flt = float(lat)
-                            lon_flt = float(lon)
-                            if pd.isna(lat_flt) or pd.isna(lon_flt): continue
-                        except:
-                            continue
-                            
-                        # Format Location String
-                        loc_str = str(city)
-                        inc = str(in_city).lower()
-                        if inc and inc not in ['nan', 'none', '']:
-                            loc_str = f"{loc_str} | {str(in_city)}"
-                            
-                        # Generate Compact HTML Tooltip 
-                        # relying on assets/map_cluster.css classes
-                        tooltip_html = (
-                            f'<div>'
-                            f'<div class="job-tooltip-title">{title}</div>'
-                            f'<div class="job-tooltip-comp">{comp}</div>'
-                            f'<div class="job-tooltip-loc">{loc_str}</div>'
-                            f'<div class="job-tooltip-link">Click to Visit</div>'
-                            f'</div>'
-                        )
-                        
-                        features.append({
-                            "type": "Feature",
-                            "geometry": {
-                                "type": "Point",
-                                "coordinates": [lon_flt, lat_flt]
-                            },
-                            "properties": {
-                                "tooltip": tooltip_html,
-                                "link": link # Used by client-side click handler if present
-                            }
-                        })
-                        count += 1
-
-                    print(f"DEBUG: Generated {count} Leaflet Features.")
-
-                    if features:
-                        # LAYER 1: Main Clustered Layer
-                        geojson_data = {
-                            "type": "FeatureCollection",
-                            "features": features
-                        }
-                        
-                        # LAYER 2: Test Unclustered Layer (Top 20)
-                        # To verify if rendering works at all without clustering
-                        test_features = features[:20] if len(features) > 20 else features
-                        test_geojson_data = {
-                            "type": "FeatureCollection",
-                            "features": test_features
-                        }
-
-                # 3. Create Component (Hybrid Debug)
-                # ----------------------------------
+                # Returns 1 TileLayer + 1 Marker. No Logic. No Dataframes.
+                # If this fails, the Map Component is broken.
                 
                 children = [
-                    # Main Clustered Layer
-                    dl.GeoJSON(
-                        data=geojson_data,
-                        cluster=True,
-                        zoomToBoundsOnClick=True,
-                        id="city-geojson-layer-clustered"
-                    ),
-                    # Test Layer (Unclustered, Red Markers?)
-                    # Using a separate layer to check visibility
-                    dl.GeoJSON(
-                        data=test_geojson_data,
-                        cluster=False, # NO CLUSTERING
-                        id="city-geojson-layer-test"
+                    dl.TileLayer(url=map_style if map_style else "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"),
+                    dl.Marker(
+                        position=[30.0444, 31.2357], 
+                        children=[dl.Tooltip("SANITY CHECK: Map Works")],
+                        id="sanity-check-marker"
                     )
                 ]
+                
+                map_output = dl.Map(
+                    center=center_location,
+                    zoom=zoom_level,
+                    children=children,
+                    style={'width': '100%', 'height': '750px', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.1)'},
+                    id='city-map-leaflet-component'
+                )
+                
+                return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, map_output, current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
+
+            except Exception as e:
+                print(f"Leaflet Map Error: {e}")
+                import traceback
+                traceback.print_exc()
+                # Return empty map on error to prevent total crash
+                return total_jobs_kpi, top_city_kpi, avg_jobs_kpi, fig, html.Div(f"Map Error: {str(e)}", style={'color': 'red'}), current_table_data, no_update, page_count, no_update, no_update, no_update, no_update, total_jobs_count_for_store
                 
                 map_output = None
                 # Check for existing children to preserve context if needed? NO, we rebuild.
