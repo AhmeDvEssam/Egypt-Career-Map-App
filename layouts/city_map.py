@@ -127,7 +127,7 @@ def city_map_layout():
 
         dbc.Row([
             dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=5),
-            dbc.Col(html.Iframe(id='city-map', srcDoc='', style={'width':'100%','height':'750px','border':'0'}), width=7), 
+            dbc.Col(html.Div(html.Div(id='city-map-leaflet'), id='map-wrapper', className='map-low-zoom'), width=7), 
         ], style={'marginBottom': 20}),
 
         # STORES
