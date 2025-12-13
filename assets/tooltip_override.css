@@ -89,3 +89,19 @@
     color: white !important;
     font-size: 18px !important;
 }
+
+/**** LEAFLET TOOLTIP OVERRIDES ****/
+/* Remove default Leaflet tooltip visuals so our custom HTML takes over */
+.leaflet-tooltip.custom-popup-tooltip {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Ensure the arrow arrow is also hidden if it exists, or color it match transparent/white */
+.leaflet-tooltip-top.custom-popup-tooltip::before {
+    border-top-color: transparent !important;
+    /* Or make it white if we want the arrow to match our inner box, but usually transparent is safer to hide default */
+    display: none !important;
+}

@@ -696,21 +696,25 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     
                 ], style={'fontFamily': "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 'padding': '8px', 'minWidth': '500px', 'pointerEvents': 'auto', 'backgroundColor': 'white', 'color': '#1e293b'})
 
-                markers.append(dl.Marker(
+                # 1. The Visual Marker (Red Dot)
+                markers.append(dl.CircleMarker(
+                    center=[highlight_lat, highlight_lon],
+                    radius=15,
+                    color='#b71c1c',
+                    fillColor='#f44336',
+                    fillOpacity=1.0,
+                    id={'type': 'marker-selected', 'index': row_idx_str}
+                ))
+
+                # 2. The Auto-Opening Popup (Standalone Component)
+                # By adding it as a direct sibling, it renders 'open' by default at this location.
+                markers.append(dl.Popup(
                     position=[highlight_lat, highlight_lon],
-                    children=[
-                        # REVERT TO TOOLTIP FOR AUTO-OPEN behavior (permanent=True)
-                        # interactive=True allows clicking links inside.
-                        dl.Tooltip(
-                            children=popup_content,
-                            permanent=True,
-                            interactive=True,
-                            direction='top',
-                            offset=[0, -20],
-                            opacity=1,
-                            style={'backgroundColor': 'transparent', 'border': 'none', 'boxShadow': 'none', 'padding': '0'}
-                        ) 
-                    ]
+                    children=popup_content,
+                    maxWidth=600,
+                    minWidth=500,
+                    autoPan=True,
+                    closeButton=True
                 ))
             
             # ---------------------------------------------------------
