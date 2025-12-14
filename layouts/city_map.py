@@ -32,7 +32,7 @@ def city_map_layout():
         val = [min_ts, max_ts]
         marks = {min_ts: 'Start', max_ts: 'End'}
 
-    return html.Div([
+    return dbc.Container(fluid=True, children=[
         html.H1([
             html.Span("Egypt", style={'color': '#111'}), 
             html.Span(" Career", style={'color': '#0066CC'}), 
@@ -126,8 +126,8 @@ def city_map_layout():
 
 
         dbc.Row([
-            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=4),
-            dbc.Col(html.Div(id='city-map-container', style={'height': '750px', 'width': '100%'}), width=8), 
+            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=5),
+            dbc.Col(html.Div(id='city-map-container', style={'height': '750px', 'width': '100%'}), width=7), 
         ], style={'marginBottom': 20}),
 
         # STORES
