@@ -404,7 +404,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 p_logo = str(selected_row.get('Image_link', ''))
                                 p_posted_ago = str(selected_row.get('How Long Ago', 'Recently'))
                                 p_skills = str(selected_row.get('Skills', ''))
-                                p_skills_list = [s.strip() for s in p_skills.split(',')][:5] if p_skills and str(p_skills).lower() != 'nan' else []
+                                p_skills_list = [s.strip() for s in p_skills.split(',')][:10] if p_skills and str(p_skills).lower() != 'nan' else []
                                 
                                 # Status Badge logic
                                 p_status = str(selected_row.get('job_status', 'Open'))
@@ -641,7 +641,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
 
                 # Skills (Limit to top 5)
                 skills_str = str(row.get('Skills', ''))
-                skills_list = [s.strip() for s in skills_str.split(',')][:5] if skills_str and str(skills_str).lower() != 'nan' else []
+                skills_list = [s.strip() for s in skills_str.split(',')][:10] if skills_str and str(skills_str).lower() != 'nan' else []
                 # DARKER SKILLS PILLS
                 skills_pills = [html.Span(s, style={'backgroundColor': '#f1f5f9', 'color': '#1e293b', 'fontSize': '13px', 'fontWeight': '700', 'padding': '6px 12px', 'borderRadius': '6px', 'border': '1px solid #cbd5e0', 'display': 'inline-block'}) for s in skills_list]
                 
