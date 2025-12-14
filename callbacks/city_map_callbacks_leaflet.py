@@ -421,12 +421,14 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                     pills = "".join([f'<span style="background-color: #f1f5f9; color: #1e293b; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e0; margin-right: 6px; margin-bottom: 6px; display: inline-block;">{s}</span>' for s in p_skills_list])
                                     skills_html = f'<div style="width: 100%; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9;"><div style="font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">RELEVANT SKILLS</div><div style="display: flex; flex-wrap: wrap;">{pills}</div></div>'
                                 
-                                # Badges Row (Type, Mode, Exp)
+                                # Badges Row (Type, Mode, Exp, Career Level)
+                                p_level = str(selected_row.get('Career Level', 'N/A'))
                                 badges_html = f"""
                                 <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
                                     <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_emp}</span>
                                     <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_work}</span>
                                     <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_exp}</span>
+                                    <span style="background-color: #f1f5f9; color: #334155; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">{p_level}</span>
                                 </div>
                                 """
 
@@ -629,6 +631,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                 # Details
                 work_mode = str(row.get('Work Mode', 'N/A'))
                 emp_type = str(row.get('Employment Type', 'N/A'))
+                career_level = str(row.get('Career Level', 'N/A'))
                 # Format Experience
                 try:
                     exp_val = float(str(row.get('Year Of Exp_Avg', 0)))
@@ -666,6 +669,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 html.Span(emp_type, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
                                 html.Span(work_mode, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
                                 html.Span(exp_lvl, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
+                                html.Span(career_level, style={'backgroundColor': '#f1f5f9', 'color': '#334155', 'fontSize': '13px', 'fontWeight': '700', 'padding': '4px 10px', 'borderRadius': '6px', 'border': '1px solid #e2e8f0'}),
                             ], style={'display': 'flex', 'gap': '8px', 'marginBottom': '8px', 'flexWrap': 'wrap'}),
                             
                             # Company/Loc/Date

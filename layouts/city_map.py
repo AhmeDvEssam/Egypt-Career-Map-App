@@ -126,8 +126,8 @@ def city_map_layout():
 
 
         dbc.Row([
-            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=5),
-            dbc.Col(html.Div(id='city-map-container', style={'height': '750px', 'width': '100%'}), width=7), 
+            dbc.Col(html.Div(dcc.Loading(dcc.Graph(id='city-bar-chart', config={'displayModeBar': True, 'modeBarButtons': [['toImage']]})), style={'height': '750px', 'overflowY': 'auto'}), width=4),
+            dbc.Col(html.Div(id='city-map-container', style={'height': '750px', 'width': '100%'}), width=8), 
         ], style={'marginBottom': 20}),
 
         # STORES
