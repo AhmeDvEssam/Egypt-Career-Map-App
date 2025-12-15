@@ -153,8 +153,12 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
     
     try:
         print("DEBUG: update_city_map triggered")
+        import plotly.express as px
         # Explicit GC
         gc.collect()
+        
+        # Theme Handling
+        is_dark = theme == 'dark'
         
         # Helper for cleaning values (Critical for Tooltips)
         def clean_val(val):
@@ -322,16 +326,20 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             city_counts.columns = ['City', 'Count']
             city_counts = city_counts.sort_values(by="Count", ascending=True)
             
+            # Ensure px is available
             import plotly.express as px
-            fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white', text='Count')
+            bar_color = '#60a5fa' if is_dark else '#001F3F'
+            fig = px.bar(city_counts, x='Count', y='City', orientation='h', title="Top Cities", template='plotly_white', text='Count',
+                         color_discrete_sequence=[bar_color])
             fig.update_layout(
                 margin=dict(l=20, r=20, t=40, b=20), 
                 height=750,
-                yaxis={'categoryorder':'total ascending', 'title': None}, 
+                yaxis={'categoryorder':'total ascending', 'title': None, 'tickfont': {'color': 'white' if is_dark else '#333', 'size': 14}}, 
                 xaxis={'title': None}
             )
-            fig.update_traces(textposition='outside')
-            apply_chart_styling(fig)
+            fig.update_traces(textposition='outside', textfont=dict(color='white' if is_dark else '#333', size=14))
+            fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='white' if is_dark else '#333')
+            apply_chart_styling(fig, theme=theme)
         else:
             total_jobs_kpi = "0"
             top_city_kpi = "N/A"
@@ -592,6 +600,7 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                     # We use table_df logic (it is already the slice for the NEW page)
                     if row_idx < len(table_df):
                         selected_row = table_df.iloc[row_idx]
+
                         row_idx_str = f"{row_idx}_{uuid.uuid4()}" # Unique ID
                         
                         if 'Latitude' in selected_row and 'Longitude' in selected_row:
@@ -605,7 +614,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
                                 zoom_level = 18
                                 is_single_view = True
                                 if selected_row.get('Link'): link_data = {'url': selected_row['Link']}
+                                if selected_row.get('Link'): link_data = {'url': selected_row['Link']}
                 except Exception as e: print(f"Error in Selection Logic: {e}")
+            
+
 
 
 
@@ -905,7 +917,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
         
         # Bar Chart 
         import plotly.express as px
-        top_n_cities = 50
+        # SHOW MORE CITIES to enable scrolling
+        top_n_cities = 200 
         chart_data = city_counts.head(top_n_cities)
         chart_df_local = pd.DataFrame({'City': chart_data.index, 'Count': chart_data.values})
         
@@ -918,8 +931,9 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             text_auto=True
         )
         city_bar_fig.update_yaxes(autorange="reversed", tickfont=dict(size=14)) 
-        chart_height = max(600, len(city_counts[:top_n_cities]) * 45)
-        city_bar_fig.update_layout(height=chart_height) 
+        # Calculate dynamic height (Ensure it is large enough to trigger scroll)
+        chart_height = max(750, len(chart_data) * 35) # 35px per bar
+        city_bar_fig.update_layout(height=chart_height, autosize=False)
         city_bar_fig.update_traces(marker_color='#0066CC', textfont_size=14, textposition='outside')
         apply_chart_styling(city_bar_fig, is_horizontal_bar=True, theme=theme)
         
@@ -996,13 +1010,24 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             tooltip_data.append(row_tooltip)
 
         is_dark = theme == 'dark'
-        table_bg = '#1e1e1e' if is_dark else 'white'
-        table_text = '#e0e0e0' if is_dark else '#333'
-        header_bg = '#0d47a1' if is_dark else '#0066CC'
-        header_text = 'white'
-        row_odd = '#2d2d2d' if is_dark else '#f9f9f9'
-        row_even = '#1e1e1e' if is_dark else 'white'
-        row_hover = '#303f9f' if is_dark else '#E3F2FD'
+        # DARK MODE: Dark Blue Header, Dark Body
+        # LIGHT MODE: Dark Blue Header, White Body
+        if is_dark:
+            header_bg = '#001F3F'
+            header_text = 'white'
+            table_bg = '#1e1e1e'
+            table_text = '#e2e8f0'
+            row_odd = '#2d2d2d' # Dark Gray
+            row_even = '#1e1e1e' # Darker Gray
+            row_hover = '#2d3748' # Slate
+        else:
+            header_bg = '#001F3F'
+            header_text = 'white'
+            table_bg = 'white'
+            table_text = '#333'
+            row_odd = '#f9f9f9'
+            row_even = 'white' 
+            row_hover = '#E3F2FD'
         
         job_table = dash_table.DataTable(
             id='jobs-table',
@@ -1019,6 +1044,10 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             page_current=current_page,
             page_size=page_size,
             page_count=total_pages,
+            
+            # Selection Logic
+            row_selectable='single',
+            selected_rows=[],
             style_table={'overflowX': 'auto', 'borderRadius': '8px', 'border': '1px solid #444' if is_dark else '1px solid #ddd'},
             style_cell={
                 'textAlign': 'left',
@@ -1045,7 +1074,8 @@ def update_city_map(companies, cities, categories, work_modes, job_statuses, emp
             style_data_conditional=[
                 {'if': {'row_index': 'odd'}, 'backgroundColor': row_odd},
                 {'if': {'row_index': 'even'}, 'backgroundColor': row_even},
-                {'if': {'state': 'active'}, 'backgroundColor': row_hover, 'border': '1px solid #0066CC', 'color': 'white' if is_dark else 'inherit'}
+                {'if': {'state': 'active'}, 'backgroundColor': row_hover, 'border': '1px solid #0066CC', 'color': 'white' if is_dark else 'inherit'},
+                {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 204, 255, 0.2)', 'border': '1px solid #00CCFF'}
             ],
             css=[
                 {'selector': '.dash-table-tooltip', 
@@ -1336,3 +1366,44 @@ def navigate_table(n_next, n_prev, current_page, page_size, active_cell, total_j
 # NEW: Handle Next/Prev Button Logic
 # ------------------------------------------------------------------
 
+
+
+# =============================================================================
+# DYNAMIC TABLE STYLING CALLBACK (Fixes Dark Mode Selection)
+# =============================================================================
+@app.callback(
+    Output('jobs-table', 'style_data_conditional'),
+    Input('theme-store', 'data')
+)
+def update_table_styling(theme):
+    is_dark = theme == 'dark'
+    
+    # Colors
+    row_odd = '#2d2d2d' if is_dark else '#fafafa'
+    row_even = '#1e1e1e' if is_dark else 'white'
+    
+    # Selection Colors (Matches Radio Button)
+    # Dark Mode: Electric Cyan
+    select_bg_dark = 'rgba(0, 204, 255, 0.25)' 
+    select_border_dark = '1px solid #00CCFF'
+    
+    # Light Mode: Blue
+    select_bg_light = '#E3F2FD'
+    select_border_light = '1px solid #2196F3'
+
+    current_select_bg = select_bg_dark if is_dark else select_bg_light
+    current_select_border = select_border_dark if is_dark else select_border_light
+    
+    return [
+        {'if': {'row_index': 'odd'}, 'backgroundColor': row_odd},
+        {'if': {'row_index': 'even'}, 'backgroundColor': row_even},
+        
+        # SELECTED STATE (Highest Priority)
+        {
+            'if': {'state': 'selected'},
+            'backgroundColor': current_select_bg,
+            'borderTop': current_select_border,
+            'borderBottom': current_select_border,
+            'fontWeight': 'bold'
+        }
+    ]

@@ -141,7 +141,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
                 xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
-                yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
+                yaxis=dict(fixedrange=True, tickfont=dict(size=17, color='#001F3F' if theme != 'dark' else 'white'), title=None),
                 dragmode=False, title_font=dict(size=24)
             )
             
@@ -192,19 +192,21 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
         exp_counts['percentage'] = (exp_counts['count'] / exp_counts['count'].sum() * 100).round(1)
         
         if not exp_counts.empty:
+            # CHANGED TO VERTICAL
             experience_buckets_fig = px.bar(
-                exp_counts, x='count', y='Experience Level', title='Experience Level Demand', orientation='h', color='count', color_continuous_scale=deep_blue_scale
+                exp_counts, x='Experience Level', y='count', title='Experience Level Demand', orientation='v', 
+                color='count', color_continuous_scale=deep_blue_scale
             )
             experience_buckets_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
-                xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
-                yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
+                height=600, font=dict(color='white' if theme == 'dark' else '#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=50, r=50, t=80, b=150), showlegend=False, coloraxis_showscale=False,
+                xaxis=dict(type='category', fixedrange=True, tickfont=dict(size=14, color='white' if theme == 'dark' else '#000000'), title=None, tickangle=-45, showticklabels=True),
+                yaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
                 dragmode=False, title_font=dict(size=24)
             )
             experience_buckets_fig.update_traces(
-                texttemplate='%{x}', textposition='outside', textfont=dict(size=17, color='#001F3F'),
-                hovertemplate='<b>%{y}</b><br>Jobs: %{x}<br>Percentage: %{customdata}%<extra></extra>',
+                texttemplate='%{y}', textposition='outside', textfont=dict(size=17, color='white' if theme == 'dark' else '#001F3F'),
+                hovertemplate='<b>%{x}</b><br>Jobs: %{y}<br>Percentage: %{customdata}%<extra></extra>',
                 customdata=exp_counts['percentage'].values,
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
@@ -217,7 +219,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     if not isinstance(experience_buckets_fig.data, tuple) or len(experience_buckets_fig.data) > 0:
         experience_buckets_fig = apply_large_fonts_to_chart(experience_buckets_fig, theme=theme)
     
-    # CHART 3: Career Level by Average Years of Experience
+    # CHART 3: Career Level (Keep Horizontal) but fix Color
     if 'Career Level' in filtered_df.columns and 'Year Of Exp_Avg' in filtered_df.columns and not filtered_df.empty:
         career_exp = filtered_df.groupby('Career Level')['Year Of Exp_Avg'].mean().reset_index()
         career_exp.columns = ['Career Level', 'avg_experience']
@@ -231,14 +233,14 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
                 career_exp, x='avg_experience', y='Career Level', title='Career Level by Average Years of Experience', orientation='h', color='avg_experience', color_continuous_scale=deep_blue_scale
             )
             career_level_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+                height=600, font=dict(color='white' if theme == 'dark' else '#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
                 xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
-                yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
+                yaxis=dict(fixedrange=True, tickfont=dict(size=17, color='#001F3F' if theme != 'dark' else 'white'), title=None),
                 dragmode=False, title_font=dict(size=24)
             )
             career_level_fig.update_traces(
-                texttemplate='%{x:.1f}', textposition='outside', textfont=dict(size=17, color='#001F3F'),
+                texttemplate='%{x:.1f}', textposition='outside', textfont=dict(size=17, color='white' if theme == 'dark' else '#001F3F'),
                 hovertemplate='<b>%{y}</b><br>Avg Experience: %{x:.1f} years<br>Job Postings: %{customdata}<extra></extra>',
                 customdata=career_exp['job_count'].values,
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
@@ -252,7 +254,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     if not isinstance(career_level_fig.data, tuple) or len(career_level_fig.data) > 0:
         career_level_fig = apply_large_fonts_to_chart(career_level_fig, theme=theme)
     
-    # CHART 4: Education Requirements
+    # CHART 4: Education Requirements (CHANGED TO VERTICAL)
     if 'education_level' in filtered_df.columns and not filtered_df.empty:
         edu_counts = filtered_df['education_level'].value_counts().reset_index()
         edu_counts.columns = ['Education Level', 'count']
@@ -261,18 +263,19 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
         
         if not edu_counts.empty:
             education_distribution_fig = px.bar(
-                edu_counts, x='count', y='Education Level', title='Education Requirements', orientation='h', color='count', color_continuous_scale=deep_blue_scale
+                edu_counts, x='Education Level', y='count', title='Education Requirements', orientation='v', 
+                color='count', color_continuous_scale=deep_blue_scale
             )
             education_distribution_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
-                xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
-                yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
+                height=600, font=dict(color='white' if theme == 'dark' else '#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=50, r=50, t=80, b=150), showlegend=False, coloraxis_showscale=False,
+                xaxis=dict(type='category', fixedrange=True, tickfont=dict(size=14, color='white' if theme == 'dark' else '#000000'), title=None, tickangle=-45, showticklabels=True),
+                yaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
                 dragmode=False, title_font=dict(size=24)
             )
             education_distribution_fig.update_traces(
-                texttemplate='%{x}', textposition='outside', textfont=dict(size=17, color='#001F3F'),
-                hovertemplate='<b>%{y}</b><br>Count: %{x}<br>Percentage: %{customdata}%<extra></extra>',
+                texttemplate='%{y}', textposition='outside', textfont=dict(size=17, color='white' if theme == 'dark' else '#001F3F'),
+                hovertemplate='<b>%{x}</b><br>Count: %{y}<br>Percentage: %{customdata}%<extra></extra>',
                 customdata=edu_counts['percentage'].values,
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )
@@ -285,7 +288,7 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
     if not isinstance(education_distribution_fig.data, tuple) or len(education_distribution_fig.data) > 0:
         education_distribution_fig = apply_large_fonts_to_chart(education_distribution_fig, theme=theme)
     
-    # CHART 5: Company Hiring Intensity
+    # CHART 5: Company Hiring Intensity (Keep Horizontal) but fix Color
     if 'Company' in filtered_df.columns and not filtered_df.empty and has_applicants:
         company_intensity = filtered_df.groupby('Company').agg({
             'applicants': 'mean',
@@ -296,19 +299,21 @@ def update_deep_analysis(companies, cities, categories, work_modes, employment_t
         top_intensity = company_intensity.nlargest(10, 'avg_applicants').sort_values('avg_applicants', ascending=True)
         
         if not top_intensity.empty:
+            # CHANGED TO VERTICAL
             hiring_intensity_fig = px.bar(
-                top_intensity, x='avg_applicants', y='Company', title='Most Competitive Companies (Avg Applicants per Posting)', orientation='h', color='avg_applicants', color_continuous_scale=deep_blue_scale
+                top_intensity, x='Company', y='avg_applicants', title='Most Competitive Companies (Avg Applicants per Posting)', orientation='v', 
+                color='avg_applicants', color_continuous_scale=deep_blue_scale
             )
             hiring_intensity_fig.update_layout(
-                height=600, font=dict(color='#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=250, r=100, t=80, b=50), showlegend=False, coloraxis_showscale=False,
-                xaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
-                yaxis=dict(fixedrange=True, tickfont=dict(size=17), title=None),
+                height=600, font=dict(color='white' if theme == 'dark' else '#001F3F'), plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=50, r=50, t=80, b=150), showlegend=False, coloraxis_showscale=False,
+                xaxis=dict(type='category', fixedrange=True, tickfont=dict(size=12, color='white' if theme == 'dark' else '#000000'), title=None, tickangle=-45, showticklabels=True), 
+                yaxis=dict(fixedrange=True, showticklabels=False, showgrid=False, title=None),
                 dragmode=False, title_font=dict(size=24)
             )
             hiring_intensity_fig.update_traces(
-                texttemplate='%{x:.1f}', textposition='outside', textfont=dict(size=17, color='#001F3F'),
-                hovertemplate='<b>%{y}</b><br>Avg Applicants: %{x:.1f}<br>Total Postings: %{customdata}<extra></extra>',
+                texttemplate='%{y:.1f}', textposition='outside', textfont=dict(size=17, color='white' if theme == 'dark' else '#001F3F'),
+                hovertemplate='<b>%{x}</b><br>Avg Applicants: %{y:.1f}<br>Total Postings: %{customdata}<extra></extra>',
                 customdata=top_intensity['postings'].values,
                 hoverlabel=dict(bgcolor='#001F3F', font_size=14, font_family='Inter', font_color='white')
             )

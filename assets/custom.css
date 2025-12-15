@@ -279,4 +279,62 @@ body:not(.dark-mode) h3 {
     color: #0f172a !important;
 }
 
-/* CACHE BUST v3 */
+/* CACHE BUST v4 */
+/* TABLE REDESIGN - User Request */
+
+/* LIGHT MODE: Dark Blue Header, White Text */
+body:not(.dark-mode) .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    background-color: #001F3F !important;
+    color: white !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* DARK MODE: Dark Blue Header (Matches Theme) */
+body.dark-mode .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    background-color: #001F3F !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+/* DARK MODE BODY: Dark Background with Light Text */
+body.dark-mode .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+    background-color: #1e1e1e;
+    /* No !important to allow selection override */
+    color: #ffffff !important;
+    /* Force White Text */
+    font-weight: 500;
+    border: 1px solid #333333 !important;
+}
+
+/* Dark Mode Hover Row - Subtle Highlight */
+body.dark-mode .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:hover td {
+    background-color: #2d3748 !important;
+    /* Slate 700 */
+    color: #ffffff !important;
+}
+
+/* SELECTED ROW HIGHLIGHT - Electric Cyan (Dark Mode) - FORCE OVERRIDE */
+body.dark-mode .dash-table-container tr.dash-row-selected td,
+body.dark-mode .dash-table-container td.dash-cell-selected {
+    background-color: rgba(0, 204, 255, 0.25) !important;
+    border-top: 1px solid #00CCFF !important;
+    border-bottom: 1px solid #00CCFF !important;
+    color: white !important;
+}
+
+/* SELECTED ROW HIGHLIGHT - Blue (Light Mode) */
+body:not(.dark-mode) .dash-table-container tr.dash-row-selected td,
+body:not(.dark-mode) .dash-table-container td.dash-cell-selected {
+    background-color: #E3F2FD !important;
+    border-top: 1px solid #2196F3 !important;
+    border-bottom: 1px solid #2196F3 !important;
+    color: #0d47a1 !important;
+}
+
+
+
+color: #0d47a1 !important;
+}

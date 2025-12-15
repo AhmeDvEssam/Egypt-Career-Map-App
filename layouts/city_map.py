@@ -149,6 +149,8 @@ def city_map_layout():
                 page_action='custom', 
                 page_current=0, 
                 page_size=15,
+                row_selectable='single', # Enable selection
+                selected_rows=[],
                 style_table={'overflowX': 'auto', 'borderRadius': '12px', 'boxShadow': '0 4px 12px rgba(0,0,0,0.05)'},
                 style_header={
                     'backgroundColor': '#5c6bc0', # Inspiration Blue/Purple
@@ -179,11 +181,6 @@ def city_map_layout():
                         'if': {'row_index': 'odd'},
                         'backgroundColor': '#fafafa'
                     },
-                    {
-                        'if': {'state': 'selected'},
-                        'backgroundColor': '#e8eaf6',
-                        'border': '1px solid #c5cae9 !important'
-                    }
                 ]
             ),
             # PERSISTENT CLICK POPUP (Fixed Bottom Right)

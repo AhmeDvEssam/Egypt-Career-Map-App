@@ -241,14 +241,17 @@ def apply_chart_styling(fig, is_horizontal_bar=True, add_margin=True, theme='lig
     )
     
     # 📊 AXIS STYLING
+    # Determine if X-axis should be hidden (Only for Horizontal Bars where X is value)
+    # If Vertical Bar, X is Category, so we MUST show it.
+    show_x = not is_horizontal_bar
+    
     fig.update_xaxes(
         showgrid=True,
         gridcolor=grid_color,
         gridwidth=1,
         zeroline=False,
         showline=False,
-        # ❌ HIDE X-AXIS TICK LABELS (numbers) - User Request
-        showticklabels=False,  # This hides the numbers on X-axis
+        showticklabels=show_x, 
         title=dict(font=dict(size=20, color=text_color)),
         color=text_color
     )
@@ -318,13 +321,18 @@ def apply_large_fonts_to_chart(fig, theme='light'):
             font=dict(size=16, color=text_color, family='Inter', weight=700)
         ),
         
-        # X-axis - HIDDEN per user request
+        # X-axis - Logic to determine visibility is hard here because we don't pass orientation
+        # But we can check fig data or just default to True for flexibility, or pass a param.
+        # Safest: Don't force hide it here, let strict layout control it? 
+        # Or better: Check if it's vertical bar in the figure data.
+        
         xaxis=dict(
-            showticklabels=False,  # ❌ Hide X-axis numbers
+            # showticklabels=False,  <-- REMOVED FORCED HIDE
             title=dict(text=''),  # Hide X-axis title
             showgrid=True,
             gridcolor=grid_color,
-            gridwidth=1
+            gridwidth=1,
+            tickfont=dict(size=13, color=text_color, family='Inter') # Ensure font is set if visible
         ),
         
         # Y-axis - Clear & Visible
